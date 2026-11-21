@@ -1,0 +1,266 @@
+/* ---- Shared stylesheet for the whole site ---- */
+
+:root {
+  --bg: #fdfdfb;
+  --ink: #1e2328;
+  --muted: #5b6570;
+  --accent: #28537a;
+  --accent-soft: #e8eef4;
+  --card-bg: #ffffff;
+  --border: #dfe3e8;
+  --code-bg: #14181d;
+  --maxw: 1060px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1.65;
+  font-size: 17px;
+}
+
+/* ---- header / nav ---- */
+
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+header.site .inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+header.site .name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+nav.site a {
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-decoration: none;
+  margin-left: 1.4rem;
+}
+
+nav.site a:hover { color: var(--accent); }
+
+/* ---- layout ---- */
+
+main {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  margin: 0 0 0.6rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+  margin: 2.4rem 0 0.8rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+}
+
+h3 {
+  font-size: 1.12rem;
+  margin: 1.9rem 0 0.5rem;
+}
+
+a { color: var(--accent); }
+
+.lede { color: var(--muted); font-size: 1.05rem; }
+
+/* ---- bio section ---- */
+
+.bio {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.bio .portrait {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--accent-soft);
+}
+
+.bio .text { flex: 1 1 320px; }
+
+/* ---- project card grid ---- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.6rem;
+  margin-top: 1.4rem;
+}
+
+.card {
+  display: block;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(30, 40, 60, 0.14);
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.card .caption {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.card .caption h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.08rem;
+}
+
+.card .caption p {
+  margin: 0;
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ---- project pages ---- */
+
+.breadcrumb {
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 1.6rem;
+}
+
+figure {
+  margin: 1.8rem 0;
+  text-align: center;
+}
+
+figure img {
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+figcaption {
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.55rem;
+}
+
+/* ---- figure gallery (2-up grid) ---- */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.4rem;
+  margin: 1.8rem 0;
+}
+
+.gallery figure { margin: 0; }
+
+/* ---- source-code download lists ---- */
+
+ul.downloads {
+  padding-left: 1.3rem;
+}
+
+ul.downloads li { margin: 0.5rem 0; }
+
+/* ---- code blocks ---- */
+
+.codebox {
+  position: relative;
+  margin: 1.4rem 0;
+}
+
+.codebox .dl {
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.82rem;
+  position: absolute;
+  top: 0.55rem;
+  right: 0.8rem;
+  z-index: 1;
+  color: #9fb3c8;
+  text-decoration: none;
+}
+
+.codebox .dl:hover { color: #fff; }
+
+pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+pre code { font-family: Consolas, 'Courier New', monospace; }
+
+details.code > summary {
+  cursor: pointer;
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin: 1.6rem 0 0.4rem;
+}
+
+/* ---- footer ---- */
+
+footer.site {
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+footer.site .inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.2rem 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .bio { flex-direction: column; align-items: center; text-align: center; }
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Michael Belluscio — Projects</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="index.html#about">About</a>
+      <a href="index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="about" class="bio">
+    <!-- Replace assets/img/portrait.jpg with a photo, or delete this <img> tag entirely. -->
+    <img class="portrait" src="assets/img/portrait.jpg" alt="Portrait of Michael Belluscio"
+         onerror="this.style.display='none'">
+    <div class="text">
+      <h1>Michael Belluscio</h1>
+      <p class="lede">Mathematician &middot; National Institutes of Health &middot; Section on Critical Brain Dynamics</p>
+      <!-- EDIT ME: draft bio — replace with your own words. -->
+      <p>
+        I am a mathematician at the National Institutes of Health working in the Section
+	on Critical Brain Dynamics in Dr. Dietmar Plenz's lab. My work in Dr. Plenz's lab centers on
+        dynamical systems, cellular automata, and computational models of complex
+        systems — specifically in the creation and analysis of neural networks aimed at producing 
+	glider-like collective behavior similar to that observed in cellular automata, with preprint currently available on <a 	href="https://www.biorxiv.org/content/10.64898/2026.10.27.761782v1">bioRxiv</a>. My interests are broadly fractals, chaos, and 	complex behaviors in dynamical systems, but in general I am curious about how intricate patterns form and what commonalities exist 	across cases. This page collects a selection of my computational and mathematical projects outside the scope of my work at the NIH 	with source code included where applicable. 
+      </p>
+    </div>
+  </section>
+
+  <section id="projects">
+    <h2>Projects</h2>
+    <div class="grid">
+
+      <a class="card" href="projects/mandelbrot/">
+        <img src="assets/img/mandelbrot.png" alt="Mandelbrot set escape potential rendered in the inferno colormap">
+        <div class="caption">
+          <h3>Mandelbrot Escape Potential</h3>
+          <p>The Douady–Hubbard potential of the Mandelbrot set, plus a map of Julia-set Hausdorff dimension across the parameter plane.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/duffing/">
+        <img src="assets/img/duffing.png" alt="Map of final positions of the driven Duffing oscillator over a grid of initial conditions">
+        <div class="caption">
+          <h3>Driven Duffing Oscillator</h3>
+          <p>Phase diagram of a forced double-well oscillator, with a live explorer that evolves the initial-condition space for any forcing and damping.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/sandpile/">
+        <img src="assets/img/sandpile.png" alt="Finest layer of a hierarchical sandpile cellular automaton">
+        <div class="caption">
+          <h3>Hierarchical Sandpile Model</h3>
+          <p>A multiscale sandpile automaton with stochastic cascades across nested lattice layers — runs live in your browser.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/trees/">
+        <img src="assets/img/trees.png" alt="A 3D tree outline built from golden-angle rotations, with branch width decreasing by depth.">
+        <div class="caption">
+          <h3>Generative Trees</h3>
+          <p>Ideal tree outlines built from golden-angle rotations, grown live in the browser by noisy branches chasing their targets.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/minesweeper/">
+        <img src="assets/img/minesweeper.png" alt="A partially solved minesweeper board with numbered cells and flags.">
+        <div class="caption">
+          <h3>Automated Minesweeper Solver</h3>
+          <p>A constraint-propagation solver playing randomly generated fields &mdash; watch it flag, deduce, and guess live.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/network/">
+        <img src="assets/img/network_structure.png" alt="A lattice of dots with hierarchical long-range links arcing between quadrant midpoints.">
+        <div class="caption">
+          <h3>Hybrid Lattice Network</h3>
+          <p>An excitatory&ndash;inhibitory lattice with a fractal hierarchy of long-range links, running live as a rate model.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/tictactoe/">
+        <img src="assets/img/proof_tictactoe.jpg" alt="Handwritten first page of the tic-tac-toe proof.">
+        <div class="caption">
+          <h3>Tic-Tac-Toe Is Unwinnable</h3>
+          <p>A proof by induction that <em>n</em>-in-a-row on an <em>n</em>&times;<em>n</em> board can always be denied by the opposing player.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/chopsticks/">
+        <img src="assets/img/proof_chopsticks.jpg" alt="Handwritten first page of the chopsticks proof.">
+        <div class="caption">
+          <h3>An Analysis of Chopsticks</h3>
+          <p>A complete analysis of the hand game Chopsticks, transcribed from the handwritten proof.</p>
+        </div>
+      </a>
+
+      <a class="card" href="projects/bubblegum/">
+        <img src="assets/img/proof_bubblegum.jpg" alt="Handwritten first page of the bubblegum proof.">
+        <div class="caption">
+          <h3>Bubblegum Elimination</h3>
+          <p>A proof that the chooser in the circle-elimination game can always direct the next choice back to themselves.</p>
+        </div>
+      </a>
+
+      <!-- To add a project: copy projects/_template/, fill it in, and add a card here:
+
+      <a class="card" href="projects/NEW-PROJECT/">
+        <img src="assets/img/NEW-PROJECT.png" alt="Short description of the image">
+        <div class="caption">
+          <h3>Project Title</h3>
+          <p>One- or two-sentence description shown under the thumbnail.</p>
+        </div>
+      </a>
+      -->
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio &middot; Built with plain HTML, hosted on GitHub Pages.</div>
+</footer>
+
+</body>
+</html>
