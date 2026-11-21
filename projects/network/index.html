@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hybrid Lattice Network — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Hybrid Lattice Network</h1>
+  <p class="lede">An excitatory&ndash;inhibitory lattice with a fractal hierarchy of long-range connections.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    The network consists of two $n \times n$ populations on a torus — one
+    excitatory, one inhibitory — with $n = 2^{\,\text{levels}+1} - 1$. Locally
+    the wiring is translation-invariant: every excitatory unit drives its
+    $3 \times 3$ neighborhood in both populations, every inhibitory unit
+    suppresses its $3 \times 3$ neighborhood, and inhibition additionally
+    reaches the surrounding radius-2 ring at half strength, giving activity a
+    local center-surround structure that favors traveling fronts.
+  </p>
+  <p>
+    On top of the lattice sits the <em>hybrid</em> part: a hierarchy of
+    long-range excitatory links laid out by binary subdivision. The lattice
+    midpoint projects to the midpoints of its four quadrants, each of those to
+    the midpoints of <em>their</em> quadrants, and so on — a self-similar,
+    fractal skeleton of shortcuts connecting scales, reminiscent of the
+    arborization patterns that carry activity between distant patches of
+    cortex. Units are rate neurons: inputs are summed, rectified, and passed
+    through $\tanh$, and any unit that just fired is held silent for a two-step
+    refractory period, which converts standing excitation into propagating
+    waves.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/network_structure.png" alt="A 63 by 63 lattice of gray dots with arrows showing hierarchical long-range links from the center to quadrant midpoints and onward to sub-quadrant midpoints.">
+    <figcaption>The lattice with its hierarchical long-range links (local $3\times3$ couplings not drawn). Squares mark link sources, dots mark targets; colors distinguish hierarchy levels.</figcaption>
+  </figure>
+
+  <h2>Run the network</h2>
+
+  <p>
+    The simulation below runs the full rate dynamics live. A seed of activity is
+    planted near the center; waves propagate locally while the long-range links
+    re-inject activity at distant midpoints, and the interplay of excitation,
+    inhibition, and refractoriness determines whether activity dies out, cycles,
+    or sustains itself. If the excitatory population ever goes fully silent, a
+    new random seed is planted near the center, as in the script. All five
+    coupling strengths apply live, so you can steer the dynamics mid-run.
+  </p>
+
+  <div id="nsim">
+    <div class="nsim-controls">
+      <button id="nRunBtn">&#9654; Run</button>
+      <button id="nResetBtn">Reset</button>
+      <label>levels <select id="nIter"><option>4</option><option selected>5</option><option>6</option></select></label>
+      <label>E&rarr;E <input type="range" id="nEE" min="0" max="40" step="0.5" value="20"><span id="nEEVal">20</span></label>
+      <label>E&rarr;I <input type="range" id="nEI" min="0" max="40" step="0.5" value="20"><span id="nEIVal">20</span></label>
+      <label>I&rarr;E <input type="range" id="nIE" min="0" max="40" step="0.5" value="10.5"><span id="nIEVal">10.5</span></label>
+      <label>I&rarr;I <input type="range" id="nII" min="0" max="40" step="0.5" value="10"><span id="nIIVal">10</span></label>
+      <label>long-range <input type="range" id="nLR" min="0" max="20" step="0.5" value="5"><span id="nLRVal">5</span></label>
+      <label>speed <input type="range" id="nSpeed" min="1" max="30" step="1" value="10"><span id="nSpeedVal">10</span> steps/s</label>
+    </div>
+    <div class="nsim-view">
+      <figure><canvas id="nCanvasE"></canvas><figcaption>excitatory population</figcaption></figure>
+      <figure><canvas id="nCanvasI"></canvas><figcaption>inhibitory population</figcaption></figure>
+    </div>
+    <div class="nsim-stats" id="nStats"></div>
+  </div>
+
+  <style>
+    #nsim { background: #14181d; border-radius: 10px; padding: 1.1rem 1.2rem 1rem; margin: 1.4rem 0;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .nsim-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; align-items: center;
+                     color: #c7d2dd; font-size: 0.82rem; margin-bottom: 0.9rem; }
+    .nsim-controls button { font: inherit; background: #28537a; color: #fff; border: 0; border-radius: 5px;
+                            padding: 0.3rem 0.8rem; cursor: pointer; }
+    .nsim-controls button:hover { background: #336699; }
+    .nsim-controls label { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+    .nsim-controls input[type=range] { width: 85px; }
+    .nsim-controls select { font: inherit; background: #1f252c; color: #e2e8ee; border: 1px solid #2c3540;
+                            border-radius: 4px; padding: 0.15rem 0.3rem; }
+    .nsim-controls span { min-width: 2.2em; color: #9fb3c8; }
+    .nsim-view { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .nsim-view figure { margin: 0; text-align: center; }
+    .nsim-view canvas { width: min(340px, 44vw); image-rendering: pixelated; border: 1px solid #2c3540;
+                        border-radius: 4px; background: #000; display: block; }
+    .nsim-view figcaption { color: #7f8fa0; font-size: 0.75rem; margin-top: 0.3rem; }
+    .nsim-stats { color: #7f8fa0; font-size: 0.78rem; margin-top: 0.7rem; }
+  </style>
+
+  <script>
+  (function () {
+    'use strict';
+    var n, E, I, nE, nI, eRef, iRef, links, t, running = false;
+    var cvE = document.getElementById('nCanvasE'), cvI = document.getElementById('nCanvasI');
+    var cxE = cvE.getContext('2d'), cxI = cvI.getContext('2d');
+    var imE, imI;
+
+    function num(id) { return parseFloat(document.getElementById(id).value); }
+
+    function buildLinks(iteration) {
+      // ports the binary-subdivision link construction from Hybrid_Network.py
+      var a = [0], b = [0];
+      for (var i = 0; i <= iteration; i++) { a.push(2 * a[i] + 1); b.push(a[i + 1] + 1); }
+      n = a[a.length - 1];
+      var flipB = b.slice(0, b.length - 1).reverse();   // flip(b[:-1])
+      var L = [];
+      for (var lv = 1; lv <= iteration - 3; lv++) {
+        for (var jrow = 0; jrow < (1 << lv); jrow++) {
+          for (var jcol = 0; jcol < (1 << lv); jcol++) {
+            var row1 = a[iteration - lv], col1 = a[iteration - lv];
+            var row0 = a[iteration - lv + 1], col0 = a[iteration - lv + 1];
+            for (var k = 0; k < lv; k++) {
+              var rb = (jrow >> k) & 1, cb = (jcol >> k) & 1;
+              row1 += rb * flipB[k]; col1 += cb * flipB[k];
+              if (k < lv - 1) { row0 += rb * flipB[k]; col0 += cb * flipB[k]; }
+            }
+            L.push([row0 * n + col0, row1 * n + col1]);
+          }
+        }
+      }
+      return L;
+    }
+
+    function seed() {
+      var lo = Math.floor(7 * n / 16), hi = Math.floor(9 * n / 16);
+      var i = lo + ((Math.random() * (hi - lo)) | 0);
+      var j = lo + ((Math.random() * (hi - lo)) | 0);
+      E[i * n + j] = 1;
+    }
+
+    function reset() {
+      running = false;
+      document.getElementById('nRunBtn').innerHTML = '&#9654; Run';
+      var iteration = parseInt(document.getElementById('nIter').value, 10);
+      links = buildLinks(iteration);
+      E = new Float64Array(n * n); I = new Float64Array(n * n);
+      nE = new Float64Array(n * n); nI = new Float64Array(n * n);
+      eRef = new Float64Array(n * n); iRef = new Float64Array(n * n);
+      cvE.width = cvE.height = cvI.width = cvI.height = n;
+      imE = cxE.createImageData(n, n); imI = cxI.createImageData(n, n);
+      t = 0;
+      seed();
+      draw(); stats();
+    }
+
+    function step() {
+      var EE = num('nEE'), EI = num('nEI'), IE = num('nIE'), II = num('nII'), LR = num('nLR');
+      var k, i, j, a, b;
+      for (k = 0; k < n * n; k++) {
+        if (E[k] > 0) eRef[k] = 2;
+        if (I[k] > 0) iRef[k] = 2;
+        nE[k] = 0; nI[k] = 0;
+      }
+      for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+          var e = E[i * n + j], inh = I[i * n + j];
+          if (e === 0 && inh === 0) continue;
+          for (a = -2; a <= 2; a++) {
+            var ii = (i + a + n) % n;
+            for (b = -2; b <= 2; b++) {
+              var jj = (j + b + n) % n, tk = ii * n + jj;
+              if (Math.abs(a) < 2 && Math.abs(b) < 2) {
+                if (e !== 0) { nE[tk] += e * EE; nI[tk] += e * EI; }
+                if (inh !== 0) { nI[tk] -= inh * II; nE[tk] -= inh * IE; }
+              } else {
+                if (inh !== 0) nE[tk] -= inh * IE / 2;
+              }
+            }
+          }
+        }
+      }
+      for (k = 0; k < links.length; k++) {
+        nE[links[k][1]] += E[links[k][0]] * LR;
+      }
+      var total = 0;
+      for (k = 0; k < n * n; k++) {
+        var ve = nE[k] < 0 ? 0 : Math.tanh(nE[k]);
+        var vi = nI[k] < 0 ? 0 : Math.tanh(nI[k]);
+        if (eRef[k] > 0) ve = 0;
+        if (iRef[k] > 0) vi = 0;
+        E[k] = ve; I[k] = vi;
+        eRef[k] -= 1; iRef[k] -= 1;
+        total += ve;
+      }
+      if (total === 0) seed();
+      t++;
+    }
+
+    // matplotlib 'hot'-style colormap
+    function hot(x) {
+      var r = Math.min(1, x / 0.365), g = Math.min(1, Math.max(0, (x - 0.365) / 0.381));
+      var b = Math.min(1, Math.max(0, (x - 0.746) / 0.254));
+      return [r * 255, g * 255, b * 255];
+    }
+
+    function paint(grid, im, cx) {
+      var data = im.data;
+      for (var i = 0; i < n; i++) {
+        var row = n - 1 - i;                 // origin='lower'
+        for (var j = 0; j < n; j++) {
+          var c = hot(Math.min(1, grid[i * n + j]));
+          var o = 4 * (row * n + j);
+          data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2]; data[o + 3] = 255;
+        }
+      }
+      cx.putImageData(im, 0, 0);
+    }
+
+    function draw() { paint(E, imE, cxE); paint(I, imI, cxI); }
+
+    function stats() {
+      var act = 0;
+      for (var k = 0; k < n * n; k++) if (E[k] > 0) act++;
+      document.getElementById('nStats').innerHTML =
+        'step ' + t + ' &middot; ' + n + '&times;' + n + ' lattice &middot; ' +
+        links.length + ' long-range links &middot; ' + act + ' active E units';
+    }
+
+    var lastT = 0;
+    function frame(ts) {
+      if (!running) return;
+      var interval = 1000 / num('nSpeed');
+      if (ts - lastT >= interval) { step(); draw(); stats(); lastT = ts; }
+      requestAnimationFrame(frame);
+    }
+
+    document.getElementById('nRunBtn').addEventListener('click', function () {
+      running = !running;
+      this.innerHTML = running ? '&#10074;&#10074; Pause' : '&#9654; Run';
+      if (running) requestAnimationFrame(frame);
+    });
+    document.getElementById('nResetBtn').addEventListener('click', reset);
+    document.getElementById('nIter').addEventListener('change', reset);
+    ['nEE', 'nEI', 'nIE', 'nII', 'nLR', 'nSpeed'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', function () {
+        document.getElementById(id + 'Val').textContent = this.value;
+      });
+    });
+
+    reset();
+  })();
+  </script>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/Hybrid_Network.py" download>Hybrid_Network.py</a> &mdash; weight-matrix construction (local kernels + hierarchical links) and the rate dynamics</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

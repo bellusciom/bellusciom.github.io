@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automated Minesweeper Solver — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Automated Minesweeper Solver</h1>
+  <p class="lede">A constraint-propagation solver that plays randomly generated minesweeper fields.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    The solver works on the boundary between revealed and hidden territory. Each
+    revealed number is a constraint on its $3 \times 3$ neighborhood, and three
+    rules are applied in order of strength. If a cell's count equals its hidden
+    plus flagged neighbors, every hidden neighbor is a mine — flag them all. If
+    the count is already met by flags, every remaining hidden neighbor is safe —
+    reveal them all. When neither rule fires, a <em>subset rule</em> compares the
+    cell with each neighboring revealed number: intersecting their neighborhoods
+    splits the hidden cells into shared and exclusive regions, and bounding how
+    many mines the shared region can absorb sometimes pins down the exclusive
+    cells exactly — flagging or revealing cells that neither constraint could
+    decide alone. Only when no rule yields a move does the solver fall back on a
+    random guess, the one step that can lose the game.
+  </p>
+
+  <h2>Run the solver</h2>
+
+  <p>
+    Generate a random field and watch the solver play, or play it yourself —
+    click to reveal, right-click to flag. "Step" applies one full pass of the
+    rules (all moves the pass finds are played at once, as in the script);
+    "Auto-solve" repeats passes until the board is won or a guess hits a mine.
+    Guesses are counted so you can see how often luck was needed.
+  </p>
+
+  <div id="msim">
+    <div class="msim-controls">
+      <button id="mNewBtn">New field</button>
+      <button id="mStepBtn">Step</button>
+      <button id="mAutoBtn">&#9654; Auto-solve</button>
+      <label>size <select id="mSize"><option>10</option><option>20</option><option selected>30</option><option>40</option></select></label>
+      <label>density <input type="range" id="mDens" min="0.05" max="0.25" step="0.01" value="0.15"><span id="mDensVal">0.15</span></label>
+      <label>speed <input type="range" id="mSpeed" min="1" max="30" step="1" value="8"><span id="mSpeedVal">8</span> passes/s</label>
+    </div>
+    <canvas id="mCanvas" width="600" height="600"></canvas>
+    <div class="msim-stats" id="mStats"></div>
+  </div>
+
+  <style>
+    #msim { background: #14181d; border-radius: 10px; padding: 1.1rem 1.2rem 1rem; margin: 1.4rem 0;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .msim-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.3rem; align-items: center;
+                     color: #c7d2dd; font-size: 0.85rem; margin-bottom: 0.9rem; }
+    .msim-controls button { font: inherit; background: #28537a; color: #fff; border: 0; border-radius: 5px;
+                            padding: 0.3rem 0.8rem; cursor: pointer; }
+    .msim-controls button:hover { background: #336699; }
+    .msim-controls label { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+    .msim-controls input[type=range] { width: 110px; }
+    .msim-controls select { font: inherit; background: #1f252c; color: #e2e8ee; border: 1px solid #2c3540;
+                            border-radius: 4px; padding: 0.15rem 0.3rem; }
+    .msim-controls span { color: #9fb3c8; }
+    #mCanvas { width: min(600px, 100%); border: 1px solid #2c3540; border-radius: 4px;
+               background: #0d1013; display: block; }
+    .msim-stats { color: #c7d2dd; font-size: 0.85rem; margin-top: 0.7rem; }
+  </style>
+
+  <script>
+  (function () {
+    'use strict';
+    var size, dens, bomb, cnt, v, auto = false, passes, guesses, status;
+    var canvas = document.getElementById('mCanvas');
+    var ctx = canvas.getContext('2d');
+    var NUMCOLORS = ['', '#4a90d9', '#58a55c', '#d9534f', '#8e6bbf', '#c47f2a', '#4ab8b8', '#d9d9d9', '#999'];
+
+    function idx(i, j) { return i * size + j; }
+
+    function newField() {
+      auto = false;
+      document.getElementById('mAutoBtn').innerHTML = '&#9654; Auto-solve';
+      size = parseInt(document.getElementById('mSize').value, 10);
+      dens = parseFloat(document.getElementById('mDens').value);
+      bomb = new Uint8Array(size * size);
+      cnt = new Uint8Array(size * size);
+      v = new Int8Array(size * size);           // 0 hidden, 1 revealed, -1 flagged
+      for (var k = 0; k < size * size; k++) bomb[k] = Math.random() < dens ? 1 : 0;
+      // neighbor count including self, as in mGenerate()
+      for (var i = 0; i < size; i++)
+        for (var j = 0; j < size; j++) {
+          var c = 0;
+          for (var a = -1; a <= 1; a++)
+            for (var b = -1; b <= 1; b++) {
+              var ii = i + a, jj = j + b;
+              if (ii >= 0 && ii < size && jj >= 0 && jj < size) c += bomb[idx(ii, jj)];
+            }
+          cnt[idx(i, j)] = c;
+        }
+      passes = 0; guesses = 0; status = 'playing';
+      draw(); stats();
+    }
+
+    function gameState() {
+      var hidden = 0;
+      for (var k = 0; k < size * size; k++) {
+        if (v[k] === 1 && bomb[k] === 1) return 'lost';
+        if (v[k] === 0) hidden++;
+      }
+      return hidden === 0 ? 'won' : 'playing';
+    }
+
+    function windowOf(i, j) {
+      return [Math.max(0, i - 1), Math.min(size, i + 2), Math.max(0, j - 1), Math.min(size, j + 2)];
+    }
+    function countIn(x1, x2, y1, y2, state) {   // half-open rows [x1,x2), cols [y1,y2)
+      var c = 0;
+      for (var l = x1; l < x2; l++) for (var k = y1; k < y2; k++) if (v[idx(l, k)] === state) c++;
+      return c;
+    }
+
+    // one full pass of solveAlgorithm(): returns list of moves [i, j, val]
+    function solvePass() {
+      var moves = [], mkey = {}, anyTouched = false, k;
+      for (k = 0; k < size * size; k++) if (v[k] !== 0) { anyTouched = true; break; }
+      function addMove(i, j, val) {
+        var key = i + ',' + j + ',' + val;
+        if (!mkey[key]) { mkey[key] = true; moves.push([i, j, val]); }
+      }
+      if (!anyTouched) {
+        moves.push([(Math.random() * size) | 0, (Math.random() * size) | 0, 1]);
+        return { moves: moves, guessed: true };
+      }
+      for (var i = 0; i < size; i++) {
+        for (var j = 0; j < size; j++) {
+          if (v[idx(i, j)] !== 1) continue;
+          var w = windowOf(i, j);
+          var minL = w[0], maxL = w[1], minK = w[2], maxK = w[3];
+          var numHidden = countIn(minL, maxL, minK, maxK, 0);
+          if (numHidden === 0) continue;       // boundary cells only
+          var numFlagged = countIn(minL, maxL, minK, maxK, -1);
+          var numBomb = cnt[idx(i, j)];
+          var L, K;
+          if (numBomb === numHidden + numFlagged) {
+            for (L = minL; L < maxL; L++) for (K = minK; K < maxK; K++)
+              if (v[idx(L, K)] === 0) addMove(L, K, -1);
+          } else if (numBomb === numFlagged) {
+            for (L = minL; L < maxL; L++) for (K = minK; K < maxK; K++)
+              if (v[idx(L, K)] === 0) addMove(L, K, 1);
+          } else {
+            // subset rule against each neighboring revealed constraint
+            for (var L1 = minL; L1 < maxL; L1++) {
+              for (var K1 = minK; K1 < maxK; K1++) {
+                if (v[idx(L1, K1)] !== 1 || (L1 === i && K1 === j)) continue;
+                var sx1, sx2, sy1, sy2;      // inclusive sub-rectangle bounds
+                if (L1 === i) { sx1 = minL; sx2 = maxL - 1; }
+                else { sx1 = Math.min(L1, i); sx2 = Math.max(L1, i); }
+                if (K1 === j) { sy1 = minK; sy2 = maxK - 1; }
+                else { sy1 = Math.min(K1, j); sy2 = Math.max(K1, j); }
+
+                var numHiddenSub = countIn(sx1, sx2 + 1, sy1, sy2 + 1, 0);
+                if (numHiddenSub === 0) continue;
+                var numFlaggedSub = countIn(sx1, sx2 + 1, sy1, sy2 + 1, -1);
+
+                var w1 = windowOf(L1, K1);
+                var numHiddenG1 = countIn(w1[0], w1[1], w1[2], w1[3], 0);
+                var numFlaggedG1 = countIn(w1[0], w1[1], w1[2], w1[3], -1);
+
+                var numHiddenC = numHidden - numHiddenSub;
+                var numFlaggedC = numFlagged - numFlaggedSub;
+                var minBombC = numBomb - Math.min(numHiddenSub + numFlaggedSub, cnt[idx(L1, K1)]);
+
+                if (numHiddenC + numFlaggedC === minBombC) {
+                  for (L = minL; L < maxL; L++) for (K = minK; K < maxK; K++)
+                    if (v[idx(L, K)] === 0 && (L < sx1 || L > sx2 || K < sy1 || K > sy2))
+                      addMove(L, K, -1);
+                } else if (numHiddenSub === numHiddenG1) {
+                  var numBombSub = cnt[idx(L1, K1)] - (numFlaggedG1 - numFlaggedSub);
+                  if (numBombSub + numFlaggedC === numBomb) {
+                    for (L = minL; L < maxL; L++) for (K = minK; K < maxK; K++)
+                      if (v[idx(L, K)] === 0 && (L < sx1 || L > sx2 || K < sy1 || K > sy2))
+                        addMove(L, K, 1);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      var guessed = false;
+      if (moves.length === 0) {               // fall back on a random guess
+        var hiddenCells = [];
+        for (k = 0; k < size * size; k++) if (v[k] === 0) hiddenCells.push(k);
+        if (hiddenCells.length) {
+          k = hiddenCells[(Math.random() * hiddenCells.length) | 0];
+          moves.push([(k / size) | 0, k % size, 1]);
+          guessed = true;
+        }
+      }
+      return { moves: moves, guessed: guessed };
+    }
+
+    function applyPass() {
+      if (status !== 'playing') return;
+      var r = solvePass();
+      for (var k = 0; k < r.moves.length; k++) {
+        var mv = r.moves[k];
+        v[idx(mv[0], mv[1])] = mv[2];
+      }
+      passes++;
+      if (r.guessed) guesses++;
+      status = gameState();
+      draw(); stats();
+    }
+
+    // ---------- rendering ----------
+    function draw() {
+      var cell = Math.floor(600 / size);
+      canvas.width = canvas.height = cell * size;
+      ctx.font = 'bold ' + Math.floor(cell * 0.62) + 'px Segoe UI, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (var i = 0; i < size; i++) {
+        for (var j = 0; j < size; j++) {
+          var x = j * cell, y = (size - 1 - i) * cell;   // row 0 at bottom, as in the script
+          var s = v[idx(i, j)];
+          if (s === 0 || s === -1) {                      // hidden / flagged tile
+            ctx.fillStyle = '#39434e';
+            ctx.fillRect(x, y, cell - 1, cell - 1);
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            ctx.fillRect(x, y, cell - 1, 2);
+            ctx.fillRect(x, y, 2, cell - 1);
+            if (s === -1) {
+              ctx.fillStyle = '#d9534f';
+              ctx.beginPath();
+              ctx.moveTo(x + cell * 0.3, y + cell * 0.2);
+              ctx.lineTo(x + cell * 0.72, y + cell * 0.36);
+              ctx.lineTo(x + cell * 0.3, y + cell * 0.52);
+              ctx.closePath(); ctx.fill();
+              ctx.fillRect(x + cell * 0.28, y + cell * 0.2, 2, cell * 0.6);
+            }
+          } else {                                        // revealed
+            if (bomb[idx(i, j)]) {
+              ctx.fillStyle = '#a33';
+              ctx.fillRect(x, y, cell - 1, cell - 1);
+              ctx.fillStyle = '#111';
+              ctx.beginPath();
+              ctx.arc(x + cell / 2, y + cell / 2, cell * 0.28, 0, 2 * Math.PI);
+              ctx.fill();
+            } else {
+              ctx.fillStyle = '#1d242c';
+              ctx.fillRect(x, y, cell - 1, cell - 1);
+              var n = cnt[idx(i, j)];
+              if (n > 0) {
+                ctx.fillStyle = NUMCOLORS[Math.min(n, 8)];
+                ctx.fillText(n, x + cell / 2, y + cell / 2 + 1);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function stats() {
+      var msg = { playing: 'playing', won: '<strong style="color:#7fb069">solved — field cleared</strong>',
+                  lost: '<strong style="color:#d9534f">boom — a guess hit a mine</strong>' }[status];
+      var nb = 0; for (var k = 0; k < size * size; k++) nb += bomb[k];
+      document.getElementById('mStats').innerHTML =
+        msg + ' &middot; ' + nb + ' mines &middot; ' + passes + ' solver passes &middot; ' +
+        guesses + ' guess' + (guesses === 1 ? '' : 'es');
+    }
+
+    var lastAuto = 0;
+    function autoFrame(ts) {
+      if (!auto) return;
+      if (status !== 'playing') {
+        auto = false;
+        document.getElementById('mAutoBtn').innerHTML = '&#9654; Auto-solve';
+        return;
+      }
+      var interval = 1000 / parseFloat(document.getElementById('mSpeed').value);
+      if (ts - lastAuto >= interval) { applyPass(); lastAuto = ts; }
+      requestAnimationFrame(autoFrame);
+    }
+
+    // ---------- controls ----------
+    document.getElementById('mNewBtn').addEventListener('click', newField);
+    document.getElementById('mStepBtn').addEventListener('click', applyPass);
+    document.getElementById('mAutoBtn').addEventListener('click', function () {
+      auto = !auto;
+      this.innerHTML = auto ? '&#10074;&#10074; Pause' : '&#9654; Auto-solve';
+      if (auto) requestAnimationFrame(autoFrame);
+    });
+    document.getElementById('mSize').addEventListener('change', newField);
+    document.getElementById('mDens').addEventListener('input', function () {
+      document.getElementById('mDensVal').textContent = parseFloat(this.value).toFixed(2);
+    });
+    document.getElementById('mSpeed').addEventListener('input', function () {
+      document.getElementById('mSpeedVal').textContent = this.value;
+    });
+
+    // manual play: click to reveal, right-click to flag
+    function cellAt(e) {
+      var r = canvas.getBoundingClientRect();
+      var cell = canvas.width / size;
+      var j = Math.floor((e.clientX - r.left) / r.width * size);
+      var i = size - 1 - Math.floor((e.clientY - r.top) / r.height * size);
+      if (i < 0 || i >= size || j < 0 || j >= size) return null;
+      return [i, j];
+    }
+    canvas.addEventListener('click', function (e) {
+      if (status !== 'playing') return;
+      var c = cellAt(e);
+      if (c && v[idx(c[0], c[1])] === 0) {
+        v[idx(c[0], c[1])] = 1;
+        status = gameState();
+        draw(); stats();
+      }
+    });
+    canvas.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      if (status !== 'playing') return;
+      var c = cellAt(e);
+      if (c) {
+        var k = idx(c[0], c[1]);
+        if (v[k] === 0) v[k] = -1;
+        else if (v[k] === -1) v[k] = 0;
+        draw(); stats();
+      }
+    });
+
+    newField();
+  })();
+  </script>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/minesweeper.py" download>minesweeper.py</a> &mdash; field generation, the three-rule solver, and the matplotlib board display</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

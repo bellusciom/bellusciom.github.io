@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generative Trees — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Generative Trees</h1>
+  <p class="lede">Ideal tree outlines from repeated rotations, grown in continuous time by noisy branches chasing their targets.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    The model has two parts. First an <em>ideal tree outline</em> is constructed:
+    a binary tree in which the branch at depth $i$ has length $1/(i+1)$, and each
+    branch's direction is obtained from its parent's local frame by composing
+    3D rotations through a fixed branching angle $\theta^*$. The default
+    $\theta^* = 2\pi(1 - 1/\varphi) \approx 137.5°$ is the golden angle, the
+    irrational rotation that appears throughout phyllotaxis. Because every
+    branch's frame is rebuilt from the root by walking its binary address, the
+    outline is fully determined by $\theta^*$ and the depth.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/tree_outlines.png" alt="Four 3D tree outlines constructed with different branching angles: the golden angle, 90, 120, and 150 degrees.">
+    <figcaption>Ideal tree outlines (depth 6) for four branching angles. Line width is the ideal branch length $1/(i+1)$.</figcaption>
+  </figure>
+
+  <h2>Continuous-time growth</h2>
+
+  <!-- EDIT ME: growth description — adjust or extend as you like. -->
+  <p>
+    The outline is then used as a scaffold for growth. Each living branch tip
+    carries a position $\mathbf{p}$, a heading $\mathbf{a}$, a speed $v$, and a
+    thickness $w$. The tip moves along its heading,
+    $\dot{\mathbf{p}} = v\,\mathbf{a}/\lVert\mathbf{a}\rVert$, while the heading
+    relaxes toward the direction of its target node: with
+    $\mathbf{t} = \mathbf{p} - \mathbf{p}_{\text{target}}$,
+    $$\dot{\mathbf{a}} \;=\; \mathbf{a} \;-\;
+      \frac{\mathbf{a}\cdot\mathbf{t}}{\lVert\mathbf{t}\rVert^{2}}\,\mathbf{t}
+      \;+\; \sigma\, w\, \boldsymbol{\xi}(t),$$
+    where $\boldsymbol{\xi}$ is temporally correlated ($1/f$) noise scaled by the
+    branch thickness, so young thick branches wander and fine twigs track their
+    targets. Thickness decays as $\dot{w} = -w^{1.3}$. Once a branch's grown
+    length $\ell$ passes its ideal length $\ell^*$, it splits with probability
+    $\tfrac{1}{2}\left(\tanh\!\big(\beta\,(\ell - \ell^*)\big) + 1\right)$ per
+    step, handing its position, speed, and thickness to two children aimed at
+    the next nodes of the outline.
+  </p>
+
+  <p>
+    The simulation below runs this growth live. Drag the view to rotate it,
+    change the branching angle or depth (both rebuild the scaffold and restart),
+    and adjust the noise to trade between faithful and gnarled trees.
+  </p>
+
+  <div id="tsim">
+    <div class="tsim-controls">
+      <button id="tRunBtn">&#9654; Grow</button>
+      <button id="tResetBtn">Reset</button>
+      <label>&theta;* <input type="range" id="tTheta" min="10" max="170" step="0.5" value="137.5">
+        <input type="number" id="tThetaNum" min="10" max="170" step="0.5" value="137.5">&deg;</label>
+      <label>depth <select id="tDepth"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></label>
+      <label>noise <input type="range" id="tNoise" min="0" max="0.3" step="0.01" value="0.05"><span id="tNoiseVal">0.05</span></label>
+      <label>speed <input type="range" id="tSpeed" min="1" max="20" step="1" value="4"><span id="tSpeedVal">4</span> steps/frame</label>
+      <label class="chk"><input type="checkbox" id="tGhost" checked> show scaffold</label>
+    </div>
+    <canvas id="tCanvas" width="640" height="560"></canvas>
+    <div class="tsim-stats" id="tStats">t = 0.00 &middot; 1 growing branch &middot; drag to rotate</div>
+  </div>
+
+  <style>
+    #tsim { background: #14181d; border-radius: 10px; padding: 1.1rem 1.2rem 1rem; margin: 1.4rem 0;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .tsim-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.3rem; align-items: center;
+                     color: #c7d2dd; font-size: 0.85rem; margin-bottom: 0.9rem; }
+    .tsim-controls button { font: inherit; background: #28537a; color: #fff; border: 0; border-radius: 5px;
+                            padding: 0.3rem 0.8rem; cursor: pointer; }
+    .tsim-controls button:hover { background: #336699; }
+    .tsim-controls label { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+    .tsim-controls input[type=range] { width: 110px; }
+    .tsim-controls input[type=number] { width: 4.6em; font: inherit; background: #1f252c; color: #e2e8ee;
+                                        border: 1px solid #2c3540; border-radius: 4px; padding: 0.15rem 0.3rem; }
+    .tsim-controls select { font: inherit; background: #1f252c; color: #e2e8ee; border: 1px solid #2c3540;
+                            border-radius: 4px; padding: 0.15rem 0.3rem; }
+    .tsim-controls span { color: #9fb3c8; }
+    #tCanvas { width: min(640px, 100%); border: 1px solid #2c3540; border-radius: 4px;
+               background: #0d1013; cursor: grab; touch-action: none; display: block; }
+    .tsim-stats { color: #7f8fa0; font-size: 0.78rem; margin-top: 0.7rem; }
+  </style>
+
+  <script>
+  (function () {
+    'use strict';
+    var DT = 0.01, BSTD = 10, VEL0 = 1, THK0 = 1;
+    var canvas = document.getElementById('tCanvas');
+    var ctx = canvas.getContext('2d');
+
+    function num(id) { return parseFloat(document.getElementById(id).value); }
+
+    // ---------- linear algebra ----------
+    function rotMat(a, th) {
+      var n = Math.hypot(a[0], a[1], a[2]);
+      var x = a[0] / n, y = a[1] / n, z = a[2] / n;
+      var c = Math.cos(th), s = Math.sin(th), C = 1 - c;
+      return [
+        [c + x * x * C,     x * y * C - z * s, x * z * C + y * s],
+        [y * x * C + z * s, c + y * y * C,     y * z * C - x * s],
+        [z * x * C - y * s, z * y * C + x * s, c + z * z * C]
+      ];
+    }
+    function mv(M, v) {
+      return [M[0][0] * v[0] + M[0][1] * v[1] + M[0][2] * v[2],
+              M[1][0] * v[0] + M[1][1] * v[1] + M[1][2] * v[2],
+              M[2][0] * v[0] + M[2][1] * v[1] + M[2][2] * v[2]];
+    }
+
+    // ---------- ideal tree outline (port of the outline construction) ----------
+    function buildTree(m, theta) {
+      var aTotal = 1 << (m + 1);
+      var pos = [];
+      for (var i = 0; i < aTotal; i++) pos.push([0, 0, 0]);
+      pos[1] = [0, 0, 1];
+      var edges = [[0, 1, 1]];
+      for (var lev = 1; lev <= m; lev++) {
+        for (var j = 1; j <= (1 << lev); j++) {
+          var iStar = (1 << (lev - 1)) + ((j - 1) >> 1);
+          var jStar = (1 << lev) + j - 1;
+          var l = 1 / (lev + 1);
+          var bits = jStar.toString(2);
+          var x = [1, 0, 0], y = [0, 1, 0], z = [0, 0, 1], aVec = [0, 0, 1];
+          for (var b = 0; b < bits.length; b++) {
+            if (bits[b] === '0') aVec = mv(rotMat(y, Math.PI - theta), z);
+            else aVec = z;
+            var a2 = mv(rotMat(y, Math.PI / 2), aVec);
+            x = mv(rotMat(aVec, theta), a2);
+            y = mv(rotMat(aVec, Math.PI / 2), x);
+            z = aVec;
+          }
+          pos[jStar] = [pos[iStar][0] + l * aVec[0],
+                        pos[iStar][1] + l * aVec[1],
+                        pos[iStar][2] + l * aVec[2]];
+          edges.push([iStar, jStar, l]);
+        }
+      }
+      return { pos: pos, edges: edges, aTotal: aTotal };
+    }
+
+    // ---------- growth state ----------
+    var tree, m, idlLen, branches, active, t, running = false;
+
+    function gauss() {
+      var u = 1 - Math.random(), v = Math.random();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    function makeBranch(p, dir, vel, thk) {
+      return { pos: p.slice(), ang: dir.slice(), vel: vel, thk: thk, len: 0,
+               nz: [0, 0, 0], pts: [p.slice()], wds: [thk] };
+    }
+
+    function reset() {
+      running = false;
+      document.getElementById('tRunBtn').innerHTML = '&#9654; Grow';
+      m = parseInt(document.getElementById('tDepth').value, 10);
+      tree = buildTree(m, num('tTheta') * Math.PI / 180);
+      idlLen = [1];
+      for (var lev = 1; lev <= m; lev++)
+        for (var j = 0; j < (1 << lev); j++) idlLen.push(1 / (lev + 1));
+      branches = new Array(tree.aTotal - 1).fill(null);
+      branches[0] = makeBranch([0, 0, 0], [0, 0, 1], VEL0, THK0);
+      active = [0];
+      t = 0;
+      draw(); stats();
+    }
+
+    function pnode(b) { return b === 0 ? 0 : ((b + 1) >> 1); }
+
+    function step(sigma) {
+      if (!active.length) return;
+      var next = [];
+      for (var k = 0; k < active.length; k++) {
+        var b = active[k], br = branches[b];
+        var tgt = tree.pos[b + 1];
+        var tv = [br.pos[0] - tgt[0], br.pos[1] - tgt[1], br.pos[2] - tgt[2]];
+        var tdot = tv[0] * tv[0] + tv[1] * tv[1] + tv[2] * tv[2];
+        var adott = br.ang[0] * tv[0] + br.ang[1] * tv[1] + br.ang[2] * tv[2];
+        var an = Math.hypot(br.ang[0], br.ang[1], br.ang[2]);
+        if (an === 0 || tdot === 0) continue;
+        // AR(1)-filtered noise approximating the script's 1/f noise
+        var rho = 0.95, amp = Math.sqrt(1 - rho * rho);
+        for (var d = 0; d < 3; d++) br.nz[d] = rho * br.nz[d] + amp * gauss();
+        for (d = 0; d < 3; d++) {
+          var dAng = br.ang[d] - (adott / tdot) * tv[d];
+          br.pos[d] += (br.vel / an) * br.ang[d] * DT;
+          br.ang[d] += (dAng + sigma * br.thk * br.nz[d]) * DT;
+        }
+        br.thk += -Math.pow(Math.max(br.thk, 0), 1.3) * DT;
+        if (br.thk < 0.02) br.thk = 0.02;
+        br.len += br.vel * DT;
+        br.pts.push(br.pos.slice());
+        br.wds.push(br.thk);
+
+        // idlLen[b] is branch b's own ideal length, as in Trees.py
+        var tgtLen = idlLen[Math.min(b, idlLen.length - 1)];
+        var scale = BSTD * (pnode(b) + 1);
+        var p = 0.5 * (Math.tanh(scale * (br.len - tgtLen)) + 1);
+        if (Math.random() <= p) {
+          for (var j = 0; j < 2; j++) {
+            var nb = (((b + 1) << 1) | j) - 1;
+            if (nb >= tree.aTotal - 1) continue;
+            var cn = tree.pos[nb + 1];
+            var dir = [cn[0] - br.pos[0], cn[1] - br.pos[1], cn[2] - br.pos[2]];
+            var dn = Math.hypot(dir[0], dir[1], dir[2]);
+            if (dn > 0) { dir[0] /= dn; dir[1] /= dn; dir[2] /= dn; }
+            branches[nb] = makeBranch(br.pos, dir, br.vel, br.thk);
+            next.push(nb);
+          }
+        } else {
+          next.push(b);
+        }
+      }
+      active = next;
+      t += DT;
+    }
+
+    // ---------- projection / rendering ----------
+    var azim = 0.6, elev = 0.18, dragging = false, lastX = 0, lastY = 0;
+
+    function project(p) {
+      var ca = Math.cos(azim), sa = Math.sin(azim);
+      var ce = Math.cos(elev), se = Math.sin(elev);
+      var x = p[0] * ca + p[1] * sa;
+      var depth = -p[0] * sa + p[1] * ca;
+      var y = p[2] * ce - depth * se;
+      var H = 0;
+      for (var lev = 0; lev <= m; lev++) H += 1 / (lev + 1);
+      var s = canvas.height / (1.15 * H + 1);
+      return [canvas.width / 2 + s * x, canvas.height - 30 - s * (y + 0.1)];
+    }
+
+    function draw() {
+      ctx.fillStyle = '#0d1013';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (document.getElementById('tGhost').checked) {
+        ctx.strokeStyle = 'rgba(160,175,190,0.22)';
+        for (var e = 0; e < tree.edges.length; e++) {
+          var ed = tree.edges[e];
+          var p1 = project(tree.pos[ed[0]]), p2 = project(tree.pos[ed[1]]);
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+        }
+      }
+      ctx.strokeStyle = '#7fb069';
+      ctx.lineCap = 'round';
+      for (var b = 0; b < branches.length; b++) {
+        var br = branches[b];
+        if (!br || br.pts.length < 2) continue;
+        var prev = project(br.pts[0]);
+        for (var k = 1; k < br.pts.length; k++) {
+          var cur = project(br.pts[k]);
+          ctx.lineWidth = Math.max(0.5, 7 * br.wds[k]);
+          ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(cur[0], cur[1]); ctx.stroke();
+          prev = cur;
+        }
+      }
+    }
+
+    function stats() {
+      document.getElementById('tStats').innerHTML =
+        't = ' + t.toFixed(2) + ' &middot; ' + active.length + ' growing branch' +
+        (active.length === 1 ? '' : 'es') + ' &middot; drag to rotate';
+    }
+
+    function frame() {
+      if (!running) return;
+      var steps = Math.round(num('tSpeed'));
+      var sigma = num('tNoise');
+      for (var k = 0; k < steps; k++) step(sigma);
+      draw(); stats();
+      if (active.length) requestAnimationFrame(frame);
+      else { running = false; document.getElementById('tRunBtn').innerHTML = '&#9654; Grow'; }
+    }
+
+    // ---------- controls ----------
+    document.getElementById('tRunBtn').addEventListener('click', function () {
+      running = !running;
+      this.innerHTML = running ? '&#10074;&#10074; Pause' : '&#9654; Grow';
+      if (running) requestAnimationFrame(frame);
+    });
+    document.getElementById('tResetBtn').addEventListener('click', reset);
+    document.getElementById('tDepth').addEventListener('change', reset);
+    var th = document.getElementById('tTheta'), thn = document.getElementById('tThetaNum');
+    th.addEventListener('input', function () { thn.value = th.value; reset(); });
+    thn.addEventListener('input', function () { if (thn.value !== '') { th.value = thn.value; reset(); } });
+    document.getElementById('tNoise').addEventListener('input', function () {
+      document.getElementById('tNoiseVal').textContent = parseFloat(this.value).toFixed(2);
+    });
+    document.getElementById('tSpeed').addEventListener('input', function () {
+      document.getElementById('tSpeedVal').textContent = this.value;
+    });
+    document.getElementById('tGhost').addEventListener('change', draw);
+
+    canvas.addEventListener('pointerdown', function (e) {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing';
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      azim += (e.clientX - lastX) * 0.01;
+      elev = Math.max(-1.2, Math.min(1.2, elev + (e.clientY - lastY) * 0.005));
+      lastX = e.clientX; lastY = e.clientY;
+      if (!running) draw();
+    });
+    canvas.addEventListener('pointerup', function (e) {
+      dragging = false; canvas.style.cursor = 'grab';
+    });
+
+    reset();
+  })();
+  </script>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/Trees.py" download>Trees.py</a> &mdash; ideal-outline construction and the vectorized growth simulation (requires <code>numpy</code>, <code>networkx</code>, <code>colorednoise</code>)</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

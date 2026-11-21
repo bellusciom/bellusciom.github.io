@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chopsticks Is Unwinnable — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+  .thm { border-left: 3px solid #28537a; background: #eef3f8; padding: 0.8rem 1.1rem; margin: 1.3rem 0; border-radius: 0 6px 6px 0; }
+  .thm .label { font-weight: bold; }
+  .proof { margin: 1rem 0 1.6rem; }
+  .proof .qed { float: right; }
+  .case { margin: 1.4rem 0 0.4rem; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Chopsticks Is Unwinnable</h1>
+  <p class="lede">A case analysis showing that a player can always escape the winning pattern in Chopsticks.</p>
+
+  <!-- EDIT ME: game description — the manuscript begins at the notation, so this summary of the standard rules is editorial; reword as you like. -->
+  <p>
+    Chopsticks is a two-player hand game. Each player holds out two hands, and on
+    each turn a player either <em>attacks</em> — adding the finger count of one of
+    their live hands to one of the opponent's live hands — or <em>splits</em>,
+    redistributing their own total finger count between their two hands. A hand
+    that accumulates five or more fingers is dead (set to $0$), and a player with
+    two dead hands loses. The analysis below shows that a win can never be forced:
+    the defending player can always escape the pattern from which a winning attack
+    is delivered.
+  </p>
+
+  <h2>Notation</h2>
+
+  <p>
+    Write $h_i = xyzw$ for the state of the hands before the $i$-th move, where
+  </p>
+  <ul>
+    <li>$x$: number on your left hand,</li>
+    <li>$y$: number on your right hand,</li>
+    <li>$z$: number on opponent's left hand,</li>
+    <li>$w$: number on opponent's right hand.</li>
+  </ul>
+  <p>
+    Moves are written $T_i : n \to m$ or $n \to n,m$, denoting an <em>attack</em>
+    ($n \to m$: hand $n$ strikes hand $m$) or a <em>split</em> ($n \to n,m$: the
+    total on the mover's hands is redistributed between hands $n$ and $m$), with
+    hands numbered $1,2,3,4$ for $x,y,z,w$ respectively. Subscripted values such
+    as $z_1, w_1$ denote the (possibly changed) values after a move.
+  </p>
+
+  <div class="thm">
+    <span class="label">Theorem.</span> Chopsticks is decidably unwinnable: against
+    correct defense, no player can ever force the winning move.
+  </div>
+
+  <div class="proof">
+    <p>
+      <em>Proof (by contradiction).</em> Assume you win on move $T_n$. Then, without
+      loss of generality, $T_n = 1 \to 3$, so that
+      $$h_n = xyz0 \quad \text{with} \quad x + z \ge 5 ,$$
+      i.e. the opponent's right hand is already dead and your left hand kills their
+      left. We will show that at $T_{n-1}$ the opponent can always avoid arriving at
+      $h_n = xyz0$ with $x + z \ge 5$.
+    </p>
+
+    <p class="case">Case I: $h_{n-1} = xyzw$, $w \neq 0$.</p>
+    <p>
+      Any $T_{n-1}$ will not lead to the winning case.
+    </p>
+
+    <p class="case">Case II: $h_{n-1} = xyz0$, $z &gt; 1$.</p>
+    <p>
+      Take $T_{n-1} = 3 \to 3,4$. Then $h_n = x\,y\,z_1 w_1$ for $z_1, w_1 \neq 0$.
+    </p>
+
+    <p class="case">Case III: $h_{n-1} = 4y10$, $y \neq 4$.</p>
+    <p>
+      Take $T_{n-1} = 3 \to 1$. Then $h_n = 0y10$ with $y \neq 4$.
+    </p>
+
+    <p class="case">Case IV: $h_{n-1} = 4410$.</p>
+    <p>
+      $$\Rightarrow\; h_{n-2} = 441w, \qquad T_{n-2} = 1 \to 4 \ \text{or}\ 2 \to 4$$
+      $$\Rightarrow\; h_{n-3} = x_1 41w \ \text{ or }\ 4y_1 1w \ \text{ or }\ 44z_1 w_1 .$$
+    </p>
+    <ol type="i">
+      <li>If $h_{n-3} = x_1 41w$, take $T_{n-3} = 3 \to 2$; then
+        $h_{n-2} = x_1 01w \Rightarrow h_n$ is not the winning case.</li>
+      <li>If $h_{n-3} = 4y_1 1w$, take $T_{n-3} = 3 \to 1$. Similarly
+        $h_{n-2} = 0y_1 1w \Rightarrow h_n$ is not the winning case.</li>
+      <li>If $h_{n-3} = 44z_1 w_1$ with $z_1 + w_1 = 1 + w$, take
+        $T_{n-3} = 3 \to 1$; then $h_{n-2} = 04z_1 w_1 \Rightarrow h_n$ is not the
+        winning case.</li>
+    </ol>
+
+    <p class="case">Case V: $h_{n-1} = xy10$, $x &lt; 3$ or $y &lt; 3$.</p>
+    <p>
+      Take $T_{n-1} = 3 \to 1$ or $3 \to 2$ respectively; then both $x, y &lt; 4$
+      $\Rightarrow h_n$ is not the winning case.
+    </p>
+
+    <p class="case">Case VI: $h_{n-1} = 3310$.</p>
+    <p>
+      In this case we can easily avoid the winning case by doing a
+      <em>&ldquo;trivial move&rdquo;</em> of $T_{n-1} = 3 \to 3,4$, giving
+      $h_n = 3301$. We call this a trivial move because it does not progress the
+      game at all, and we essentially end up in the same place we started.
+      However, we can still avoid the winning case <em>without</em> utilizing the
+      trivial move. The position $3310$ can only have arisen as
+      $$\big(h_{n-2},\, T_{n-2}\big) \;=\; \big(331w,\ 1 \to 4 \ \text{or}\ 2 \to 4\big),\ w \ge 2
+      \qquad \text{or} \qquad \big(4210 \ \text{or}\ 2410,\ 1 \to 1,2 \ \text{or}\ 2 \to 2,1\big).$$
+    </p>
+    <ol type="i">
+      <li>
+        <p>$h_{n-2} = 331w$, $w \ge 2$:
+        $$\Rightarrow\; h_{n-3} = 231w \ \text{ or }\ 131w\ (w = 2) \ \text{ or }\ 33z_1 w_1\ (z_1 + w_1 = 1 + w).$$</p>
+        <ol>
+          <li>$h_{n-3} = 231w$ or $131w$: take $T_{n-3} = 4 \to 2$; then
+            $h_{n-2} = 201w$ or $101w \Rightarrow h_n$ not the winning case.</li>
+          <li>$h_{n-3} = 33z_1 w_1$ with $z_1 + w_1 = 1 + w$: if $z_1 = 0$ or
+            $w_1 = 0$, this can be avoided by Case II. If $z_1, w_1 \neq 0$, then
+            either $z_1 \ge 2$ or $w_1 \ge 2$; so take $T_{n-3} = 3 \to 1$ or
+            $4 \to 1$ respectively $\Rightarrow h_{n-2} = 03z_1 w_1 \Rightarrow
+            h_n$ not the winning case.</li>
+        </ol>
+      </li>
+      <li>
+        <p>$h_{n-2} = 4210$ (or $2410$, symmetrically):
+        $$\Rightarrow\; h_{n-3} = 4201 \ \text{ or }\ 42z_1 w_1\ (z_1 + w_1 = 6) \ \text{ or }\ 3210 \ \text{ or }\ 4110 .$$</p>
+        <ol>
+          <li>$h_{n-3} = 4201$: take $T_{n-3} = 4 \to 1 \Rightarrow h_{n-2} = 0201
+            \Rightarrow h_n$ not the winning case.</li>
+          <li>$h_{n-3} = 42z_1 w_1$, $z_1 + w_1 = 6$: take $T_{n-3} = 3 \to 1
+            \Rightarrow h_{n-2} = 02z_1 w_1 \Rightarrow h_n$ not the winning
+            case.</li>
+          <li>$h_{n-3} = 3210$: take $T_{n-3} = 3 \to 2 \Rightarrow h_{n-2} =
+            3310$. Because we are not allowing trivial moves, we cannot have
+            $T_{n-2} : 1 \to 1,2$ giving $h_{n-1} = 3310$. So $h_n$ is not the
+            winning case.</li>
+          <li>$h_{n-3} = 4110$: take $T_{n-3} = 3 \to 1 \Rightarrow h_{n-2} = 0110
+            \Rightarrow h_n$ not the winning case.</li>
+        </ol>
+      </li>
+    </ol>
+
+    <p>
+      This covers all cases, and thus shows that an opponent can always escape a
+      winning case. <span class="qed">$\blacksquare$</span>
+    </p>
+  </div>
+
+  <h2>Original manuscript</h2>
+  <!-- EDIT ME: feel free to reword. -->
+  <p>
+    The proof above is transcribed from the handwritten manuscript:
+  </p>
+  <ul class="downloads">
+    <li><a href="../../assets/img/chopsticks_scan_1.jpg">Page 1</a> &mdash; notation and Cases I</li>
+    <li><a href="../../assets/img/chopsticks_scan_2.jpg">Page 2</a> &mdash; Cases II&ndash;IV</li>
+    <li><a href="../../assets/img/chopsticks_scan_3.jpg">Page 3</a> &mdash; Cases V&ndash;VI and the trivial move</li>
+    <li><a href="../../assets/img/chopsticks_scan_4.jpg">Page 4</a> &mdash; Case VI subcases</li>
+    <li><a href="../../assets/img/chopsticks_scan_5.jpg">Page 5</a> &mdash; final subcases and conclusion</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Driven Duffing Oscillator — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Driven Duffing Oscillator</h1>
+  <p class="lede">Sensitivity to initial conditions in a periodically forced double-well oscillator.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    This project studies the forced, damped Duffing oscillator
+  </p>
+  <p>
+    $$\ddot{x} \;=\; -\,\delta\,\dot{x} \;+\; x \;-\; x^{3} \;+\; F\cos t ,$$
+  </p>
+  <p>
+    a particle in the double-well potential $V(x) = -\tfrac{1}{2}x^2 + \tfrac{1}{4}x^4$
+    with linear damping $\delta$ and sinusoidal driving of amplitude $F$. For weak
+    forcing the particle settles into one of the two wells; for strong enough forcing
+    it hops chaotically between them, and which long-term behavior occurs depends
+    delicately on where the trajectory starts.
+  </p>
+  <p>
+    The script runs in two modes. In <code>param</code> mode it sweeps the
+    $(F, \delta)$ parameter plane and records the late-time oscillation amplitude at
+    each point, producing a stability diagram, with the integration time step refined
+    adaptively whenever a simulation blows up. In <code>icond</code> mode (shown
+    below) it fixes $F = 1.25$, $\delta = 0.1$ and integrates an entire grid of
+    initial conditions $(x_0, \dot{x}_0) \in [-2.5, 2.5]^2$ simultaneously as vectorized
+    array operations. Coloring each pixel by its final position $x(T)$ reveals the
+    finely interleaved basin structure characteristic of chaotic dynamics: nearby
+    starting points end up on opposite sides of the potential barrier.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/duffing.png" alt="Grid of initial conditions for the driven Duffing oscillator colored by final position, showing finely interleaved spiral basin structure.">
+    <figcaption>Final position $x(T)$ after 8 forcing periods, over a $600 \times 600$ grid of initial conditions $(x_0, \dot{x}_0)$, with $F = 1.25$, $\delta = 0.1$.</figcaption>
+  </figure>
+
+  <h2>Parameter space</h2>
+
+  <!-- EDIT ME: parameter-space description — adjust or extend as you like. -->
+  <p>
+    Sweeping the forcing amplitude $F$ and damping $D$ (the <code>param</code>
+    mode of the script) and recording the late-time oscillation amplitude at
+    each point produces a phase diagram of the oscillator's regimes. At strong
+    damping the response is small and regular; as $D$ decreases the response
+    grows and the diagram develops interleaved tongues where periodic and
+    chaotic behavior alternate on finer and finer scales, down to the nearly
+    undamped band at the bottom.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/duffing_param_space.png" alt="Phase diagram of the Duffing oscillator over forcing amplitude F and damping D, showing smooth regions at high damping and finely interleaved chaotic tongues at low damping.">
+    <figcaption>Late-time oscillation amplitude over the $(F, D)$ plane, $F \in [0, 2]$, $D \in [0, 1]$. Use this diagram to pick interesting parameter values for the live explorer below.</figcaption>
+  </figure>
+
+  <h2>Explore the initial-condition space</h2>
+
+  <!-- EDIT ME: explorer description — adjust or extend as you like. -->
+  <p>
+    The simulation below evolves the entire initial-condition plane live in
+    your browser, using the same integration scheme as the script
+    (dt&nbsp;=&nbsp;0.001). Every pixel is one trajectory, started at
+    $(x_0, \dot{x}_0) \in [-2.5, 2.5]^2$ with zero initial acceleration, and
+    colored by its current position $x(t)$ from $-2.5$ (blue) to $+2.5$ (red).
+    Choose a forcing amplitude $F$ and damping $D$ — guided by the phase
+    diagram above — and press Run. Smooth regions are trajectories moving in
+    lockstep; sharp interleaving is sensitive dependence on initial
+    conditions. The sliders apply immediately, so you can also drag $F$ or $D$
+    mid-run and watch the plane reorganize.
+  </p>
+
+  <div id="dsim">
+    <div class="dsim-controls">
+      <button id="dRunBtn">&#9654; Run</button>
+      <button id="dResetBtn">Reset</button>
+      <label>$F$ <input type="range" id="dF" min="0" max="2" step="0.01" value="1.25">
+        <input type="number" id="dFnum" min="0" max="2" step="0.01" value="1.25"></label>
+      <label>$D$ <input type="range" id="dD" min="0" max="1" step="0.01" value="0.1">
+        <input type="number" id="dDnum" min="0" max="1" step="0.01" value="0.1"></label>
+      <label>speed <input type="range" id="dSpeed" min="5" max="120" step="5" value="30"><span id="dSpeedVal">30</span> steps/frame</label>
+    </div>
+    <div class="dsim-view">
+      <div class="dsim-canvaswrap">
+        <canvas id="dCanvas" width="300" height="300"></canvas>
+        <div class="dsim-cbarwrap">
+          <span class="dsim-eq" style="left: 30%" title="stable equilibrium x = -1">&#9660;</span>
+          <span class="dsim-eq" style="left: 50%" title="unstable equilibrium x = 0">&#9661;</span>
+          <span class="dsim-eq" style="left: 70%" title="stable equilibrium x = +1">&#9660;</span>
+          <canvas id="dCbar" width="256" height="1"></canvas>
+        </div>
+        <div class="dsim-ticks"><span>&minus;2.5</span><span>&minus;1.25</span><span>0</span><span>+1.25</span><span>+2.5</span></div>
+        <div class="dsim-cbarlabel">current position x(t) &mdash; equilibria of the unforced system: &#9660; stable wells at x = &plusmn;1, &#9661; saddle at x = 0</div>
+      </div>
+      <div class="dsim-side">
+        <div class="dsim-stats" id="dStats">t = 0.00 &middot; 0.00 forcing cycles</div>
+        <div class="dsim-note">x&#8320; runs left to right, &#7819;&#8320; bottom to top; color is the current position x(t).</div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    #dsim { background: #14181d; border-radius: 10px; padding: 1.1rem 1.2rem 1rem; margin: 1.4rem 0;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .dsim-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.3rem; align-items: center;
+                     color: #c7d2dd; font-size: 0.85rem; margin-bottom: 0.9rem; }
+    .dsim-controls button { font: inherit; background: #28537a; color: #fff; border: 0; border-radius: 5px;
+                            padding: 0.3rem 0.8rem; cursor: pointer; }
+    .dsim-controls button:hover { background: #336699; }
+    .dsim-controls label { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+    .dsim-controls input[type=range] { width: 120px; }
+    .dsim-controls input[type=number] { width: 4.4em; font: inherit; background: #1f252c; color: #e2e8ee;
+                                        border: 1px solid #2c3540; border-radius: 4px; padding: 0.15rem 0.3rem; }
+    .dsim-controls span { color: #9fb3c8; }
+    .dsim-view { display: flex; flex-wrap: wrap; gap: 1.1rem; align-items: flex-start; }
+    .dsim-canvaswrap { display: flex; flex-direction: column; width: min(480px, 100%); }
+    #dCanvas { width: 100%; image-rendering: auto; border: 1px solid #2c3540;
+               border-radius: 4px; background: #000; }
+    .dsim-cbarwrap { position: relative; margin-top: 1.5rem; }
+    #dCbar { width: 100%; height: 12px; border: 1px solid #2c3540; border-radius: 3px; display: block; }
+    .dsim-eq { position: absolute; top: -1.05em; transform: translateX(-50%); color: #e2e8ee;
+               font-size: 0.8rem; line-height: 1; cursor: default; }
+    .dsim-ticks { display: flex; justify-content: space-between; color: #9fb3c8;
+                  font-size: 0.72rem; margin-top: 0.15rem; }
+    .dsim-cbarlabel { color: #7f8fa0; font-size: 0.72rem; text-align: center; margin-top: 0.1rem; }
+    .dsim-side { flex: 1 1 200px; }
+    .dsim-stats { color: #c7d2dd; font-size: 0.85rem; }
+    .dsim-note { color: #7f8fa0; font-size: 0.78rem; margin-top: 0.6rem; max-width: 26em; }
+  </style>
+
+  <script>
+  (function () {
+    'use strict';
+    var N = 300, LIM = 2.5, DT = 0.001;
+    var X, Y, Z, t, running = false;
+
+    var canvas = document.getElementById('dCanvas');
+    var ctx = canvas.getContext('2d');
+    var image = ctx.createImageData(N, N);
+
+    function num(id) { return parseFloat(document.getElementById(id).value); }
+
+    // keep each slider and its number box in sync
+    [['dF', 'dFnum'], ['dD', 'dDnum']].forEach(function (pair) {
+      var r = document.getElementById(pair[0]), n = document.getElementById(pair[1]);
+      r.addEventListener('input', function () { n.value = r.value; });
+      n.addEventListener('input', function () { if (n.value !== '') r.value = n.value; });
+    });
+    document.getElementById('dSpeed').addEventListener('input', function () {
+      document.getElementById('dSpeedVal').textContent = this.value;
+    });
+
+    function reset() {
+      X = new Float64Array(N * N);
+      Y = new Float64Array(N * N);
+      Z = new Float64Array(N * N);
+      for (var i = 0; i < N; i++) {          // row i: velocity y0, col j: position x0
+        var v0 = -LIM + 2 * LIM * i / (N - 1);
+        for (var j = 0; j < N; j++) {
+          X[i * N + j] = -LIM + 2 * LIM * j / (N - 1);
+          Y[i * N + j] = v0;
+        }
+      }
+      t = 0;
+      draw(); stats();
+    }
+
+    // exact scheme from pendulum.py: velocity advances with the previous
+    // step's acceleration, position with the previous velocity
+    function step(F, d, fcos) {
+      for (var k = 0; k < N * N; k++) {
+        var x = X[k], y = Y[k], z = Z[k];
+        var z1 = -d * y + x - x * x * x + fcos;
+        x += y * DT;
+        y += z * DT;
+        if (x > 50) x = 50; else if (x < -50) x = -50;
+        if (y > 50) y = 50; else if (y < -50) y = -50;
+        X[k] = x; Y[k] = y; Z[k] = z1;
+      }
+      t += DT;
+    }
+
+    // jet colormap on [0, 1]
+    function jet(u) {
+      var r = Math.min(1, Math.max(0, 1.5 - Math.abs(4 * u - 3)));
+      var g = Math.min(1, Math.max(0, 1.5 - Math.abs(4 * u - 2)));
+      var b = Math.min(1, Math.max(0, 1.5 - Math.abs(4 * u - 1)));
+      return [r * 255, g * 255, b * 255];
+    }
+
+    function draw() {
+      var data = image.data;
+      for (var i = 0; i < N; i++) {
+        var row = N - 1 - i;                 // flip so velocity increases upward
+        for (var j = 0; j < N; j++) {
+          var x = X[i * N + j];
+          if (x > LIM) x = LIM; else if (x < -LIM) x = -LIM;
+          var c = jet((x + LIM) / (2 * LIM));
+          var o = 4 * (row * N + j);
+          data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2]; data[o + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function stats() {
+      document.getElementById('dStats').innerHTML =
+        't = ' + t.toFixed(2) + ' &middot; ' + (t / (2 * Math.PI)).toFixed(2) + ' forcing cycles';
+    }
+
+    // paint the colorbar gradient once
+    (function () {
+      var cctx = document.getElementById('dCbar').getContext('2d');
+      var img = cctx.createImageData(256, 1);
+      for (var i = 0; i < 256; i++) {
+        var c = jet(i / 255);
+        img.data[4 * i] = c[0]; img.data[4 * i + 1] = c[1];
+        img.data[4 * i + 2] = c[2]; img.data[4 * i + 3] = 255;
+      }
+      cctx.putImageData(img, 0, 0);
+    })();
+
+    function frame() {
+      if (!running) return;
+      var F = num('dF'), d = num('dD');
+      var steps = Math.round(num('dSpeed'));
+      for (var k = 0; k < steps; k++) step(F, d, F * Math.cos(t));
+      draw(); stats();
+      requestAnimationFrame(frame);
+    }
+
+    document.getElementById('dRunBtn').addEventListener('click', function () {
+      running = !running;
+      this.innerHTML = running ? '&#10074;&#10074; Pause' : '&#9654; Run';
+      if (running) requestAnimationFrame(frame);
+    });
+    document.getElementById('dResetBtn').addEventListener('click', function () {
+      running = false;
+      document.getElementById('dRunBtn').innerHTML = '&#9654; Run';
+      reset();
+    });
+
+    reset();
+  })();
+  </script>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/pendulum.py" download>pendulum.py</a> &mdash; both modes: the $(F, D)$ parameter sweep and the animated initial-condition grid</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

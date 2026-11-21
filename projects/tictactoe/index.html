@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tic-Tac-Toe: n×n is Unwinnable — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+  .thm { border-left: 3px solid #28537a; background: #eef3f8; padding: 0.8rem 1.1rem; margin: 1.3rem 0; border-radius: 0 6px 6px 0; }
+  .thm .label { font-weight: bold; }
+  .proof { margin: 1rem 0 1.6rem; }
+  .proof .qed { float: right; }
+  .note { font-size: 0.95rem; color: #3d4752; border-left: 3px solid #b9c6d2; padding: 0.5rem 1.1rem; margin: 1.3rem 0; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Tic-Tac-Toe: $n \times n$ is Unwinnable</h1>
+  <p class="lede">A notebook proof that generalized tic-tac-toe cannot be won against a competent opponent.</p>
+
+  <!-- EDIT ME: intro — adjust or extend as you like. -->
+  <p>
+    This argument concerns generalized tic-tac-toe: $n$ in a row on an
+    $n \times n$ board, with X moving first. Two counting lemmas handle the
+    classical $3 \times 3$ game, and an induction step extends the result to
+    every larger board: the opposing player can always deny a win, so the
+    game is <em>decidably unwinnable</em>. Throughout, "turn $n$" counts
+    X's own moves, and win conditions are counted from X's perspective.
+  </p>
+
+  <!-- EDIT ME: work-in-progress notice — remove once the proof is completed. -->
+  <div class="note" style="border-left-color: #c9a227; background: #fbf6e7;">
+    <strong>Work in progress.</strong> This proof is currently unfinished: the
+    lemmas below cover turns 1, 2, and 5, but the cases following turns 3 and 4
+    are still missing.
+  </div>
+
+  <!-- Transcribed from the handwritten manuscript (3 notebook pages). -->
+
+  <div class="thm">
+    <span class="label">Lemma 1.</span>
+    You need two or more simultaneous win conditions to win on your next turn.
+  </div>
+  <div class="proof">
+    <em>Proof.</em>
+    Suppose after turn $n$ you have one or zero win conditions. Then O will
+    either block the one win condition you have, or will go anywhere — so you
+    cannot win on turn $n+1$. <span class="qed">$\blacksquare$</span>
+  </div>
+
+  <div class="thm">
+    <span class="label">Lemma 2.</span>
+    You cannot have more than two win conditions after turns 1, 2, or 5.
+  </div>
+  <div class="proof">
+    <em>Proof.</em>
+    <ol style="margin-top: 0.5rem;">
+      <li><strong>Turn 1:</strong> after turn 1 you will have placed only one
+        X, and cannot have any win conditions.</li>
+      <li><strong>Turn 2:</strong> after turn 2 you will have placed two X's.
+        However, no win conditions overlap in two places, so you can have at
+        most one win condition.</li>
+      <li><strong>Turn 5:</strong> after turn 5 the entire board will be
+        filled, so you cannot have any win conditions.
+        <span class="qed">$\blacksquare$</span></li>
+    </ol>
+  </div>
+
+  <div class="note">
+    <strong>Note.</strong> A <em>win condition</em> is defined by having two
+    members in a row, column, or diagonal, and the last spot open.
+  </div>
+
+  <h2>Induction step</h2>
+
+  <div class="proof">
+    <em>Proof.</em>
+    Suppose $(n-1) \times (n-1)$ tic-tac-toe is decidably unwinnable. Then for
+    an $n \times n$ grid, take some $(n-1) \times (n-1)$ subgrid.
+    <p>
+      If X plays within that subgrid, respond as if playing
+      $(n-1) \times (n-1)$ tic-tac-toe.
+    </p>
+    <p>
+      If X plays outside the subgrid, play an O to block one of the two win
+      conditions independent of the subgrid, in alternating fashion.
+    </p>
+    <p>
+      Then, because $(n-1) \times (n-1)$ tic-tac-toe is decidably unwinnable,
+      there will not be any $n-1$ consecutive X's in the subgrid.
+    </p>
+    <p>
+      But with every move outside of the subgrid, one of the remaining two win
+      conditions was blocked. So X cannot win outside the subgrid.
+    </p>
+    <p>
+      Thus, $n \times n$ tic-tac-toe is decidably unwinnable.
+      <span class="qed">$\blacksquare$</span>
+    </p>
+  </div>
+
+  <h2>Original manuscript</h2>
+  <p>Scans of the handwritten proof:</p>
+  <ul class="downloads">
+    <li><a href="../../assets/img/tictactoe_scan_1.jpg">page 1</a> &mdash; Lemmas 1 and 2 (turns 1 and 2)</li>
+    <li><a href="../../assets/img/tictactoe_scan_2.jpg">page 2</a> &mdash; turn 5, the win-condition definition, and the induction step</li>
+    <li><a href="../../assets/img/tictactoe_scan_3.jpg">page 3</a> &mdash; conclusion of the induction step</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

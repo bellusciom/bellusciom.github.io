@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hierarchical Sandpile Model — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Hierarchical Sandpile Model</h1>
+  <p class="lede">A multiscale sandpile automaton with stochastic cascades between nested lattice layers.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    Classical sandpile models (in the tradition of Bak, Tang, and Wiesenfeld) place
+    grains on a single lattice and topple any site that exceeds a threshold,
+    producing avalanches with scale-free statistics. This project generalizes that
+    picture to a <em>hierarchy</em> of lattices: layer $n$ is a
+    $3^n \times 3^n$ periodic grid, so each cell at one scale sits above a
+    $3 \times 3$ block of children at the next finer scale, down through five layers.
+  </p>
+  <p>
+    A cell on layer $n$ topples when its load exceeds the scale-adjusted threshold
+    $C / 3^{2n}$. When it topples, its entire load is redistributed stochastically:
+    a fraction set by the <em>viscosity</em> $\nu$ cascades down to its nine children
+    on the finer layer, the remainder spreads to its eight lateral neighbors, and in
+    both cases the split among recipients is drawn from a symmetric Dirichlet
+    distribution, so no two avalanches are identical. A <em>friction</em> coefficient
+    removes a fixed fraction of the moved load at every topple (optionally recycled
+    back to the coarsest cell to conserve total mass), and the finest layer can only
+    spread laterally, acting as the dissipative floor of the hierarchy.
+  </p>
+  <p>
+    The driver script loads the single coarsest cell and sweeps the
+    $(\nu, \text{friction})$ parameter plane, recording how long each cascade takes
+    to reach a steady state &mdash; probing how transport between scales and
+    dissipation within scales compete to set the relaxation time.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/sandpile_layers.png" alt="Four panels showing layers 1 through 4 of the hierarchical sandpile, each a finer lattice with bright toppling activity on a dark background.">
+    <figcaption>Layers 1&ndash;4 of the hierarchy (lattice sizes $3 \times 3$ up to $81 \times 81$) during a driven cascade with $\nu = 0.5$ and friction $0.02$.</figcaption>
+  </figure>
+
+  <h2>Run the model</h2>
+
+  <p>
+    The simulation below is the same model running live in your browser (a
+    direct JavaScript port of <code>update()</code> from the script, including
+    the Dirichlet-distributed cascades). Each panel is one layer of the
+    hierarchy, from the single driver cell on layer 0 down to the
+    $81 \times 81$ floor; brightness shows the load in each cell, scaled per
+    layer. Load is injected at the top at a steady rate, topples cascade
+    laterally and downward, and friction bleeds energy out of every topple
+    (optionally recycled to the top to conserve mass).
+  </p>
+
+  <div id="sim">
+    <div class="sim-controls">
+      <button id="runBtn">&#9654; Run</button>
+      <button id="stepBtn">Step</button>
+      <button id="resetBtn">Reset</button>
+      <button id="grainBtn">Add load</button>
+      <label>viscosity &nu; <input type="range" id="visc" min="0" max="1" step="0.01" value="0.5"><span id="viscVal">0.50</span></label>
+      <label>friction <input type="range" id="fric" min="0" max="0.2" step="0.005" value="0.02"><span id="fricVal">0.020</span></label>
+      <label>load / drive <input type="range" id="load" min="0" max="10" step="0.5" value="2.5"><span id="loadVal">2.5</span></label>
+      <label>drive every <input type="range" id="drive" min="1" max="50" step="1" value="5"><span id="driveVal">5</span> steps</label>
+      <label>speed <input type="range" id="speed" min="1" max="30" step="1" value="2"><span id="speedVal">2</span> steps/frame</label>
+      <label class="chk"><input type="checkbox" id="conserv"> conserve mass</label>
+    </div>
+    <div class="sim-layers" id="layers"></div>
+    <div class="sim-stats" id="stats">iteration 0 &middot; total mass 0.00 &middot; topples 0</div>
+  </div>
+
+  <style>
+    #sim { background: #14181d; border-radius: 10px; padding: 1.1rem 1.2rem 1rem; margin: 1.4rem 0;
+           font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .sim-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.3rem; align-items: center;
+                    color: #c7d2dd; font-size: 0.82rem; margin-bottom: 0.9rem; }
+    .sim-controls button { font: inherit; background: #28537a; color: #fff; border: 0; border-radius: 5px;
+                           padding: 0.3rem 0.8rem; cursor: pointer; }
+    .sim-controls button:hover { background: #336699; }
+    .sim-controls label { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+    .sim-controls input[type=range] { width: 90px; }
+    .sim-controls span { min-width: 2.6em; color: #9fb3c8; }
+    .sim-layers { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: flex-end; }
+    .sim-layers figure { margin: 0; text-align: center; }
+    .sim-layers canvas { width: 150px; height: 150px; image-rendering: pixelated; border: 1px solid #2c3540;
+                         border-radius: 4px; background: #000; display: block; }
+    .sim-layers figcaption { color: #7f8fa0; font-size: 0.72rem; margin-top: 0.3rem; }
+    .sim-stats { color: #7f8fa0; font-size: 0.78rem; margin-top: 0.8rem; }
+  </style>
+
+  <script>
+  (function () {
+    'use strict';
+    var DEPTH = 5, RATIO = 3, C = 1;
+    var layers, iter, topples, running = false;
+
+    var canvases = [], ctxs = [], images = [];
+    var layerHost = document.getElementById('layers');
+    for (var n = 0; n < DEPTH; n++) {
+      var s = Math.pow(RATIO, n);
+      var fig = document.createElement('figure');
+      var cv = document.createElement('canvas');
+      cv.width = s; cv.height = s;
+      var cap = document.createElement('figcaption');
+      cap.textContent = 'layer ' + n + ' (' + s + '×' + s + ')';
+      fig.appendChild(cv); fig.appendChild(cap); layerHost.appendChild(fig);
+      canvases.push(cv);
+      var ctx = cv.getContext('2d');
+      ctxs.push(ctx);
+      images.push(ctx.createImageData(s, s));
+    }
+
+    function param(id) { return parseFloat(document.getElementById(id).value); }
+    var labels = { visc: ['viscVal', 2], fric: ['fricVal', 3], load: ['loadVal', 1], drive: ['driveVal', 0], speed: ['speedVal', 0] };
+    Object.keys(labels).forEach(function (id) {
+      var el = document.getElementById(id);
+      var show = function () {
+        document.getElementById(labels[id][0]).textContent = param(id).toFixed(labels[id][1]);
+      };
+      el.addEventListener('input', show); show();
+    });
+
+    function reset() {
+      layers = [];
+      for (var n = 0; n < DEPTH; n++) {
+        var s = Math.pow(RATIO, n);
+        layers.push(new Float64Array(s * s));
+      }
+      layers[0][0] = param('load');
+      iter = 0; topples = 0;
+      draw(); stats();
+    }
+
+    // Dirichlet(1,...,1) sample = normalized Exp(1) draws
+    function dirichlet(k) {
+      var w = new Float64Array(k), sum = 0, i;
+      for (i = 0; i < k; i++) { w[i] = -Math.log(1 - Math.random()); sum += w[i]; }
+      for (i = 0; i < k; i++) w[i] /= sum;
+      return w;
+    }
+
+    function update() {
+      var visc = param('visc'), fric = param('fric');
+      var conserv = document.getElementById('conserv').checked;
+      var L1 = layers.map(function (a) { return a.slice(); });
+      var frictionSum = 0;
+      topples = 0;
+      for (var n = 0; n < DEPTH; n++) {
+        var s = Math.pow(RATIO, n), thr = C / (s * s), L = layers[n];
+        for (var i = 0; i < s; i++) {
+          for (var j = 0; j < s; j++) {
+            var v = L[i * s + j];
+            if (v <= thr) continue;
+            topples++;
+            L1[n][i * s + j] -= v;
+            if (n !== 0) {                     // lateral spread to 8 neighbors
+              var aL = (n === DEPTH - 1) ? v * (1 - fric) : (1 - visc) * v * (1 - fric);
+              frictionSum += (n === DEPTH - 1) ? v * fric : (1 - visc) * v * fric;
+              var w = dirichlet(8), idx = 0;
+              for (var a = -1; a <= 1; a++) {
+                for (var b = -1; b <= 1; b++) {
+                  if (a === 0 && b === 0) continue;
+                  var ii = (i + a + s) % s, jj = (j + b + s) % s;
+                  L1[n][ii * s + jj] += aL * w[idx++];
+                }
+              }
+            }
+            if (n < DEPTH - 1) {               // cascade down to 9 children
+              var aD = (n === 0) ? v * (1 - fric) : visc * v * (1 - fric);
+              frictionSum += (n === 0) ? v * fric : visc * v * fric;
+              var w2 = dirichlet(RATIO * RATIO), idx2 = 0, s2 = s * RATIO;
+              for (var p = RATIO * i; p < RATIO * i + RATIO; p++) {
+                for (var q = RATIO * j; q < RATIO * j + RATIO; q++) {
+                  L1[n + 1][p * s2 + q] += aD * w2[idx2++];
+                }
+              }
+            }
+          }
+        }
+      }
+      if (conserv) L1[0][0] += frictionSum;
+      layers = L1;
+      iter++;
+      if (iter % Math.round(param('drive')) === 0) layers[0][0] += param('load');
+    }
+
+    // matplotlib 'hot'-style colormap
+    function hot(x) {
+      var r = Math.min(1, x / 0.365), g = Math.min(1, Math.max(0, (x - 0.365) / 0.381));
+      var b = Math.min(1, Math.max(0, (x - 0.746) / 0.254));
+      return [r * 255, g * 255, b * 255];
+    }
+
+    function draw() {
+      for (var n = 0; n < DEPTH; n++) {
+        var L = layers[n], s = Math.pow(RATIO, n);
+        // scale each layer to its own 98th percentile so detail stays visible
+        var sorted = Array.prototype.slice.call(L).sort(function (a, b) { return a - b; });
+        var hi = sorted[Math.floor(0.98 * (sorted.length - 1))] || C / (s * s);
+        if (hi <= 0) hi = C / (s * s);
+        var data = images[n].data;
+        for (var k = 0; k < L.length; k++) {
+          var c = hot(Math.min(1, L[k] / hi));
+          // flip vertically so orientation matches the matplotlib figures
+          var row = s - 1 - Math.floor(k / s), col = k % s, o = 4 * (row * s + col);
+          data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2]; data[o + 3] = 255;
+        }
+        ctxs[n].putImageData(images[n], 0, 0);
+      }
+    }
+
+    function stats() {
+      var mass = 0;
+      for (var n = 0; n < DEPTH; n++) for (var k = 0; k < layers[n].length; k++) mass += layers[n][k];
+      document.getElementById('stats').innerHTML =
+        'iteration ' + iter + ' &middot; total mass ' + mass.toFixed(2) + ' &middot; topples ' + topples;
+    }
+
+    function frame() {
+      if (!running) return;
+      var steps = Math.round(param('speed'));
+      for (var k = 0; k < steps; k++) update();
+      draw(); stats();
+      requestAnimationFrame(frame);
+    }
+
+    document.getElementById('runBtn').addEventListener('click', function () {
+      running = !running;
+      this.innerHTML = running ? '&#10074;&#10074; Pause' : '&#9654; Run';
+      if (running) requestAnimationFrame(frame);
+    });
+    document.getElementById('stepBtn').addEventListener('click', function () { update(); draw(); stats(); });
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      running = false;
+      document.getElementById('runBtn').innerHTML = '&#9654; Run';
+      reset();
+    });
+    document.getElementById('grainBtn').addEventListener('click', function () { layers[0][0] += param('load'); draw(); stats(); });
+
+    reset();
+  })();
+  </script>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/sandpile.py" download>sandpile.py</a> &mdash; the hierarchical sandpile model and the viscosity&ndash;friction relaxation-time sweep</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

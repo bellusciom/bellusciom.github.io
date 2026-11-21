@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bubblegum: The Chooser Can Always Be Chosen Again — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+  .thm { border-left: 3px solid #28537a; background: #eef3f8; padding: 0.8rem 1.1rem; margin: 1.3rem 0; border-radius: 0 6px 6px 0; }
+  .thm .label { font-weight: bold; }
+  .proof { margin: 1rem 0 1.6rem; }
+  .proof .qed { float: right; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Generalized Bubblegum Proof</h1>
+  <p class="lede">In the generalized bubblegum elimination circle, the chooser can always arrange to be chosen again &mdash; without ever having to eliminate themselves.</p>
+
+  <!-- EDIT ME: intro prose — adjust as you like (rules transcribed from the manuscript). -->
+  <h2>The game</h2>
+  <p>
+    $n$ players stand in a circle, and one is chosen to pick a number $K$. The
+    player $K$ clockwise positions away from the chosen player is then
+    eliminated, and the player $B$ clockwise positions away from the eliminated
+    player is then chosen to pick the next number.
+  </p>
+
+  <div class="thm">
+    <span class="label">Question.</span>
+    For all $n \in \mathbb{N}$, can the chosen player pick a $K$ such that they
+    will once again be chosen on the next turn?
+  </div>
+
+  <h2>Setting up the loop condition</h2>
+  <p>
+    In order for the chosen player to be chosen again, either $K + B$ positions
+    away is one full loop,
+  </p>
+  <p>
+    $$K + B = n,$$
+  </p>
+  <p>
+    or it makes several full loops,
+  </p>
+  <p>
+    $$K + B = n + A(n-1), \qquad A \in \mathbb{N}$$
+  </p>
+  <p>
+    (after the elimination only $n-1$ players remain, so each additional loop
+    has length $n-1$).
+  </p>
+
+  <div class="thm">
+    <span class="label">Claim.</span>
+    There is never a case where the chosen player must eliminate themselves in
+    order for one full loop or several full loops to be made.
+  </div>
+
+  <h2>Proof</h2>
+  <div class="proof">
+    <p>
+      For $B \in \mathbb{N}^{+}$ and $n &gt; 1$, there exists $A \in \mathbb{N}$
+      such that
+    </p>
+    <p>
+      $$(A+1)(n-1) \;&gt;\; B-1 \;\geq\; A(n-1).$$
+    </p>
+    <p>Negating and subtracting $1$,</p>
+    <p>
+      $$-(A+1)(n-1) - 1 \;&lt;\; -B \;\leq\; -A(n-1) - 1,$$
+    </p>
+    <p>then adding $n$,</p>
+    <p>
+      $$n - (A+1)(n-1) - 1 \;&lt;\; n - B \;\leq\; n - A(n-1) - 1,$$
+    </p>
+    <p>and adding $A(n-1)$ throughout,</p>
+    <p>
+      $$n + A(n-1) - (A+1)(n-1) - 1 \;&lt;\; n - B + A(n-1) \;\leq\; n - A(n-1) - 1 + A(n-1)$$
+    </p>
+    <p>
+      $$\Rightarrow\; n - (n-1) - 1 \;&lt;\; n - B + A(n-1) \;\leq\; n - 1$$
+    </p>
+    <p>
+      $$\Rightarrow\; 0 \;&lt;\; n - B + A(n-1) \;\leq\; n - 1.$$
+    </p>
+    <p>
+      Take $K = n - B + A(n-1)$. Then
+    </p>
+    <p>
+      $$K + B = n + A(n-1), \qquad A \in \mathbb{N}. \quad$$<span class="qed">$\blacksquare$</span>
+    </p>
+    <p style="clear: both;">
+      Since $0 &lt; K \leq n - 1$, this $K$ is a legal pick that eliminates a
+      player other than the chooser &mdash; so the chooser can always return the
+      selection to themselves without self-elimination.
+    </p>
+  </div>
+
+  <h2>Original manuscript</h2>
+  <p>The proof above is transcribed from the handwritten notebook pages:</p>
+  <ul class="downloads">
+    <li><a href="../../assets/img/bubblegum_scan_1.jpg" download>bubblegum_scan_1.jpg</a> &mdash; rules, question, and loop condition</li>
+    <li><a href="../../assets/img/bubblegum_scan_2.jpg" download>bubblegum_scan_2.jpg</a> &mdash; the proof</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>

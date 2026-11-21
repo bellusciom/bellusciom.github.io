@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandelbrot Escape Potential — Michael Belluscio</title>
+<link rel="stylesheet" href="../../style.css">
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <a class="name" href="../../index.html">Michael Belluscio</a>
+    <nav class="site">
+      <a href="../../index.html#about">About</a>
+      <a href="../../index.html#projects">Projects</a>
+      <a href="mailto:michael.belluscio@nih.gov">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
+
+  <h1>Mandelbrot Escape Potential</h1>
+  <p class="lede">The Douady&ndash;Hubbard potential of the Mandelbrot set, computed by direct iteration.</p>
+
+  <!-- EDIT ME: project description — adjust or extend as you like. -->
+  <p>
+    The Mandelbrot set is the set of parameters $c$ for which the orbit of
+    $z_{n+1} = z_n^2 + c$, started at $z_0 = 0$, remains bounded. Rather than
+    coloring points by escape time, this script computes the
+    <em>escape potential</em>
+  </p>
+  <p>
+    $$G(c) \;=\; \lim_{n \to \infty} \frac{1}{2^{\,n}} \log\lvert z_n \rvert ,$$
+  </p>
+  <p>
+    the Green's function of the complement of the set with a pole at infinity.
+    $G$ vanishes on the set itself and grows smoothly away from it, so its level
+    sets trace the equipotential curves that foliate the exterior &mdash; the same
+    structure used in the Douady&ndash;Hubbard proof that the Mandelbrot set is
+    connected. Numerically, the limit converges quickly: after $n$ iterations,
+    $2^{-n}\log\lvert z_n\rvert$ is already an excellent approximation for any
+    orbit that has escaped.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/mandelbrot.png" alt="Escape potential of the Mandelbrot set in the inferno colormap; the set itself is black and equipotential bands glow around its boundary.">
+    <figcaption>Escape potential $G(c)$ on $[-2.1, 0.9] \times [-1.5, 1.5]$. The set itself is the zero-potential region in black.</figcaption>
+  </figure>
+
+  <h2>Hausdorff dimension of $J_c$ across parameter space</h2>
+
+  <!-- EDIT ME: dimension-map description — adjust or extend as you like. -->
+  <p>
+    Each parameter $c$ also defines a Julia set $J_c$ — the boundary between
+    bounded and escaping orbits of $z \mapsto z^2 + c$ in the dynamical plane —
+    and its Hausdorff dimension varies with $c$. The map below assigns to every
+    point of the parameter plane the dimension of its Julia set, computed via
+    Bowen's formula: $\dim J_c$ is the unique $s$ at which the topological
+    pressure of $-s \log\lvert f_c' \rvert$ vanishes,
+  </p>
+  <p>
+    $$P\!\left(-s \log\lvert f_c' \rvert\right) = 0 .$$
+  </p>
+  <p>
+    The pressure is evaluated on depth-14 backward-orbit trees of the repelling
+    fixed point $\beta$, using the growth rate of the transfer-operator sums
+    $\sum_{f_c^n(z) = \beta} \lvert (f_c^n)'(z) \rvert^{-s}$ rather than box
+    counting of rendered pixels (which systematically inflates the dimension of
+    exterior Cantor dust, since the gaps in the dust fall below pixel
+    resolution). The method reproduces the known anchors: $\dim J_0 = 1$
+    exactly for the circle, $\approx 1.268$ for the basilica $(c = -1)$, and
+    $\approx 1.39$ for Douady's rabbit. The dimension exceeds 1 not only
+    inside the Mandelbrot set but also in the exterior dust near the boundary
+    (e.g. near Misiurewicz points such as $c = i$), and falls toward the
+    polynomial-lemniscate limit of smooth equipotentials far away.
+  </p>
+
+  <figure>
+    <img src="../../assets/img/julia_dimension_map.png" alt="Heat map of the Hausdorff dimension of the Julia set over the parameter plane; the Mandelbrot boundary glows bright where the dimension approaches 2.">
+    <figcaption>$\dim J_c$ over a $2400 \times 2400$ parameter grid (Bowen pressure formula, depth-14 preimage trees). The dimension climbs toward 2 along the boundary of the Mandelbrot set.</figcaption>
+  </figure>
+
+  <h2>Source code</h2>
+  <ul class="downloads">
+    <li><a href="../../assets/code/mandel.py" download>mandel.py</a> &mdash; the escape-potential computation</li>
+    <li><a href="../../assets/code/render_dimension.py" download>render_dimension.py</a> &mdash; parallel renderer for the Julia-dimension parameter map</li>
+    <li><a href="../../assets/code/mandel_viewer.py" download>mandel_viewer.py</a> &mdash; the interactive Mandelbrot/Julia viewer module the renderer imports (save it as <code>mandel.py</code> next to the renderer)</li>
+  </ul>
+
+</main>
+
+<footer class="site">
+  <div class="inner">&copy; 2026 Michael Belluscio</div>
+</footer>
+
+</body>
+</html>
