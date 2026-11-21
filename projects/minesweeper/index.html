@@ -34,13 +34,13 @@ MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
     The solver works on the boundary between revealed and hidden territory. Each
     revealed number is a constraint on its $3 \times 3$ neighborhood, and three
     rules are applied in order of strength. If a cell's count equals its hidden
-    plus flagged neighbors, every hidden neighbor is a mine — flag them all. If
-    the count is already met by flags, every remaining hidden neighbor is safe —
-    reveal them all. When neither rule fires, a <em>subset rule</em> compares the
+    plus flagged neighbors, every hidden neighbor is a mine (flag them all). If
+    the count is already met by flags, every remaining hidden neighbor is safe
+    (reveal them all). When neither rule fires, a <em>subset rule</em> compares the
     cell with each neighboring revealed number: intersecting their neighborhoods
     splits the hidden cells into shared and exclusive regions, and bounding how
     many mines the shared region can absorb sometimes pins down the exclusive
-    cells exactly — flagging or revealing cells that neither constraint could
+    cells exactly, flagging or revealing cells that neither constraint could
     decide alone. Only when no rule yields a move does the solver fall back on a
     random guess, the one step that can lose the game.
   </p>
