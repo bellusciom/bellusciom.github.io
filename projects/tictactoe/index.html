@@ -15,6 +15,12 @@ MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   .proof { margin: 1rem 0 1.6rem; }
   .proof .qed { float: right; }
   .note { font-size: 0.95rem; color: #3d4752; border-left: 3px solid #b9c6d2; padding: 0.5rem 1.1rem; margin: 1.3rem 0; }
+  .case { margin: 1.1rem 0 1.1rem 0; }
+  .case .subcase { margin-left: 1.4rem; }
+  .case .chead { font-weight: bold; text-decoration: underline; }
+  table.board { border-collapse: collapse; margin: 1rem auto; }
+  table.board td { border: 1px solid var(--ink); width: 2.2em; height: 2.2em;
+                   text-align: center; font-family: Georgia, serif; font-size: 1.05rem; }
 </style>
 </head>
 <body>
@@ -34,60 +40,233 @@ MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   <div class="breadcrumb"><a href="../../index.html#projects">&larr; All projects</a></div>
 
   <h1>Tic-Tac-Toe: $n \times n$ is Unwinnable</h1>
-  <p class="lede">A notebook proof that generalized tic-tac-toe cannot be won against a competent opponent.</p>
+  <p class="lede">A complete analysis of the $3 \times 3$ game, extended to every larger board by induction.</p>
 
   <!-- EDIT ME: intro — adjust or extend as you like. -->
   <p>
     This argument concerns generalized tic-tac-toe: $n$ in a row on an
-    $n \times n$ board, with X moving first. Two counting lemmas handle the
-    classical $3 \times 3$ game, and an induction step extends the result to
-    every larger board: the opposing player can always deny a win, so the
-    game is <em>decidably unwinnable</em>. Throughout, "turn $n$" counts
-    X's own moves, and win conditions are counted from X's perspective.
+    $n \times n$ board, with X moving first. The $3 \times 3$ base case is
+    settled by a direct case analysis over X's openings, phrased in terms of
+    the win-condition domains that remain open as the game progresses; a
+    companion argument shows O cannot win either, and two lemmas bound the
+    earliest turn on which any win can occur. An induction step then extends
+    the result to every larger board: the opposing player can always deny a
+    win, so the game is <em>decidably unwinnable</em>.
   </p>
 
-  <!-- EDIT ME: work-in-progress notice — remove once the proof is completed. -->
-  <div class="note" style="border-left-color: #c9a227; background: #fbf6e7;">
-    <strong>Work in progress.</strong> This proof is currently unfinished: the
-    lemmas below cover turns 1, 2, and 5, but the cases following turns 3 and 4
-    are still missing.
+  <h2>Notation</h2>
+
+  <!-- Transcribed from the handwritten manuscript (notebook pages 1-6 of the 3×3 analysis). -->
+
+  <p>
+    Cells are numbered $1$ through $9$:
+  </p>
+
+  <table class="board">
+    <tr><td>1</td><td>2</td><td>3</td></tr>
+    <tr><td>4</td><td>5</td><td>6</td></tr>
+    <tr><td>7</td><td>8</td><td>9</td></tr>
+  </table>
+
+  <p>
+    We denote the win-condition domains as follows: $\ell_1, \ell_2, \ell_3$
+    are the three rows (top to bottom), $h_1, h_2, h_3$ the three columns
+    (left to right), and $d_1 = \{3,5,7\}$, $d_2 = \{1,5,9\}$ the two
+    diagonals, so that
+    $$\Lambda \;=\; \{\ell_1, \ell_2, \ell_3,\; h_1, h_2, h_3,\; d_1, d_2\}.$$
+  </p>
+
+  <ul>
+    <li>Let $X_t$ be the placement of X on turn $t$, and $O_t$ be defined similarly.</li>
+    <li>Let $\Lambda_t^x$ be the open domains for X at turn $t$.</li>
+    <li>Let ${}_x\Lambda_t^n$ be the open domains with $n$ X's at turn $t$.</li>
+  </ul>
+
+  <!-- EDIT ME: editorial clarification — the manuscript leaves "open" implicit. -->
+  <div class="note">
+    <strong>Note.</strong> A domain is <em>open</em> for a player while it
+    contains none of the opponent's marks — that is, while it can still be
+    completed. Turns are counted by single moves, so $X_1, O_2, X_3, \ldots,
+    X_9$; the analogous symbols $\Lambda_t^o$ and ${}_o\Lambda_t^n$ are used
+    for O.
   </div>
 
-  <!-- Transcribed from the handwritten manuscript (3 notebook pages). -->
+  <h2>The $3 \times 3$ game</h2>
+
+  <div class="thm">
+    <span class="label">Theorem 1.</span>
+    If O plays optimally, X cannot win $3 \times 3$ tic-tac-toe.
+  </div>
+
+  <div class="proof">
+    <em>Proof.</em>
+
+    <div class="case">
+      <p><span class="chead">Case I:</span> $X_1 = 1$. Then take $O_2 = 5$.</p>
+
+      <div class="subcase">
+        <p><span class="chead">Case I.I:</span> $X_3 = 2, 6$. Then take $O_4 = 3$.</p>
+        $$\Rightarrow\; {}_x\Lambda_4^2 = \emptyset,\quad
+          {}_x\Lambda_4^1 = \{h_1\},\quad
+          \Lambda_4^x = \{h_1, \ell_3\}$$
+        $$\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+          \lvert \Lambda_6^x \rvert < 2$$
+        <p>Similarly for $X_3 = 4, 8$.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case I.II:</span> $X_3 = 3, 9$.
+          Then take $O_4 = 2 \Rightarrow X_5 = 8$</p>
+        $$\Rightarrow\; O_6 = 7 \;\Rightarrow\; \Lambda_6^x = \{h_3\},\quad
+          {}_x\Lambda_6^2 = \emptyset$$
+        <p>Similarly for $X_3 = 7$.</p>
+      </div>
+
+      <p>WLOG, this covers $X_1 = 3, 7, 9$.</p>
+    </div>
+
+    <div class="case">
+      <p><span class="chead">Case II:</span> $X_1 = 2$. Then take $O_2 = 5$.</p>
+
+      <div class="subcase">
+        <p><span class="chead">Case II.I:</span> $X_3 = 1, 3$.
+          This is equivalent to Case I.I.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case II.II:</span> $X_3 = 4, 8$.
+          Take $O_4 = 1 \Rightarrow X_5 = 9$, then take $O_6 = 7$</p>
+        $$\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+          \Lambda_6^x = \{h_3\}$$
+        <p>Similarly for $X_3 = 6$.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case II.III:</span> $X_3 = 7$.
+          Take $O_4 = 1 \Rightarrow X_5 = 9 \Rightarrow O_6 = 8$</p>
+        $$\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+          \Lambda_6^x = \{h_3\}$$
+        <p>Similarly for $X_3 = 9$.</p>
+      </div>
+
+      <p>WLOG, this covers $X_1 = 4, 6, 8$.</p>
+    </div>
+
+    <div class="case">
+      <p><span class="chead">Case III:</span> $X_1 = 5$. Take $O_2 = 1$.</p>
+
+      <div class="subcase">
+        <p><span class="chead">Case III.I:</span> $X_3 = 2$.</p>
+        $$\Rightarrow\; O_4 = 8,\quad {}_x\Lambda_4^2 = \emptyset,\quad
+          {}_x\Lambda_4^1 = \{d_1, \ell_2\},\quad
+          \Lambda_4^x = \{d_1, \ell_2, h_3\}$$
+
+        <div class="subcase">
+          <p><span class="chead">Case III.I.I:</span> $X_5 = 7, 9$. Take $O_6 = 3$</p>
+          $$\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+            \lvert \Lambda_6^x \rvert < 2$$
+        </div>
+
+        <div class="subcase">
+          <p><span class="chead">Case III.I.II:</span> $X_5 = 4$</p>
+          $$\Rightarrow\; O_6 = 6 \;\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+            \lvert \Lambda_6^x \rvert < 2$$
+        </div>
+
+        <div class="subcase">
+          <p><span class="chead">Case III.I.III:</span> $X_5 = 6$</p>
+          $$\Rightarrow\; O_6 = 4 \;\Rightarrow\; X_7 = 7 \;\Rightarrow\; O_8 = 3
+            \;\Rightarrow\; \Lambda_8^x = \emptyset$$
+        </div>
+
+        <div class="subcase">
+          <p><span class="chead">Case III.I.IV:</span> $X_5 = 3$</p>
+          $$\Rightarrow\; O_6 = 7 \;\Rightarrow\; X_7 = 4 \;\Rightarrow\; O_8 = 6
+            \;\Rightarrow\; \Lambda_8^x = \emptyset$$
+        </div>
+
+        <p>Similarly for $X_3 = 4$.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case III.II:</span> $X_3 = 3$</p>
+        $$\Rightarrow\; O_4 = 7 \;\Rightarrow\; X_5 = 4 \;\Rightarrow\; O_6 = 6
+          \;\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+          \lvert \Lambda_6^x \rvert < 2$$
+        <p>Similarly for $X_3 = 7$.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case III.III:</span> $X_3 = 6$</p>
+        $$\Rightarrow\; O_4 = 4 \;\Rightarrow\; X_5 = 7 \;\Rightarrow\; O_6 = 3
+          \;\Rightarrow\; X_7 = 2 \;\Rightarrow\; O_8 = 8
+          \;\Rightarrow\; \Lambda_8^x = \emptyset$$
+        <p>Similarly for $X_3 = 8$.</p>
+      </div>
+
+      <div class="subcase">
+        <p><span class="chead">Case III.IV:</span> $X_3 = 9$.
+          Take $O_4 = 7 \Rightarrow X_5 = 4 \Rightarrow O_6 = 6$</p>
+        $$\Rightarrow\; {}_x\Lambda_6^2 = \emptyset,\quad
+          \lvert \Lambda_6^x \rvert < 2$$
+      </div>
+    </div>
+
+    <p>
+      Therefore, $3 \times 3$ tic-tac-toe is decidably unwinnable for X.
+      <span class="qed">$\blacksquare$</span>
+    </p>
+  </div>
+
+  <div class="thm">
+    <span class="label">Theorem 2.</span>
+    If X plays optimally, O cannot win $3 \times 3$ tic-tac-toe.
+  </div>
+
+  <div class="proof">
+    <em>Proof.</em>
+    Let $X_1 = 5$, then let $X_3 = 1, 3, 7, 9$
+    $$\Rightarrow\; \lvert \Lambda_3^o \rvert = 2,\quad
+      \lvert {}_o\Lambda_3^1 \rvert \le 2
+      \;\Rightarrow\; {}_o\Lambda_5^1 = \emptyset,\quad
+      \lvert \Lambda_5^o \rvert < 2.
+      \quad$$
+    <span class="qed">$\blacksquare$</span>
+  </div>
+
+  <!-- EDIT ME: connective sentence — the manuscript states these lemmas after the theorems. -->
+  <p>
+    The case analyses above terminate once the open-domain counts are pinned
+    down; the following lemmas are what make those terminations conclusive.
+  </p>
 
   <div class="thm">
     <span class="label">Lemma 1.</span>
-    You need two or more simultaneous win conditions to win on your next turn.
+    For $\alpha \in \{X, O\}$ to win on turn $t^*$,
+    $\lvert {}_\alpha\Lambda_{t^*-2}^2 \rvert \ge 2$.
   </div>
   <div class="proof">
     <em>Proof.</em>
-    Suppose after turn $n$ you have one or zero win conditions. Then O will
-    either block the one win condition you have, or will go anywhere — so you
-    cannot win on turn $n+1$. <span class="qed">$\blacksquare$</span>
+    If $\lvert {}_\alpha\Lambda_{t^*-2}^2 \rvert = 1$, then
+    $\beta \in \{X, O\} \setminus \alpha$ can play such that
+    ${}_\alpha\Lambda_{t^*-1}^2 = \emptyset$, thus $\alpha$ cannot win on
+    turn $t^*$. <span class="qed">$\blacksquare$</span>
   </div>
 
   <div class="thm">
     <span class="label">Lemma 2.</span>
-    You cannot have more than two win conditions after turns 1, 2, or 5.
+    X cannot win before turn 7, O before turn 8.
   </div>
   <div class="proof">
     <em>Proof.</em>
-    <ol style="margin-top: 0.5rem;">
-      <li><strong>Turn 1:</strong> after turn 1 you will have placed only one
-        X, and cannot have any win conditions.</li>
-      <li><strong>Turn 2:</strong> after turn 2 you will have placed two X's.
-        However, no win conditions overlap in two places, so you can have at
-        most one win condition.</li>
-      <li><strong>Turn 5:</strong> after turn 5 the entire board will be
-        filled, so you cannot have any win conditions.
-        <span class="qed">$\blacksquare$</span></li>
-    </ol>
+    Suppose X wins on turn $t^*$. Then
+    $\lvert {}_x\Lambda_{t^*-2}^2 \rvert \ge 2$. Because each winnable domain
+    overlaps at most once with each other one, at least 3 X's must be played
+    on turn $t^* - 2$
+    $$\Rightarrow\; t^* - 2 \ge 5 \;\Rightarrow\; t^* \ge 7.$$
+    Similarly for O. <span class="qed">$\blacksquare$</span>
   </div>
 
-  <div class="note">
-    <strong>Note.</strong> A <em>win condition</em> is defined by having two
-    members in a row, column, or diagonal, and the last spot open.
-  </div>
 
   <h2>Induction step</h2>
 
@@ -118,10 +297,21 @@ MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </div>
 
   <h2>Original manuscript</h2>
-  <p>Scans of the handwritten proof:</p>
+
+  <p>Scans of the handwritten $3 \times 3$ analysis:</p>
   <ul class="downloads">
-    <li><a href="../../assets/img/tictactoe_scan_1.jpg">page 1</a> &mdash; Lemmas 1 and 2 (turns 1 and 2)</li>
-    <li><a href="../../assets/img/tictactoe_scan_2.jpg">page 2</a> &mdash; turn 5, the win-condition definition, and the induction step</li>
+    <li><a href="../../assets/img/tictactoe_scan_4.jpg">page 1</a> &mdash; win-condition domains, notation, and the statement of Theorem 1</li>
+    <li><a href="../../assets/img/tictactoe_scan_5.jpg">page 2</a> &mdash; Case I (corner opening) and the start of Case II</li>
+    <li><a href="../../assets/img/tictactoe_scan_6.jpg">page 3</a> &mdash; Cases II.II&ndash;II.III and the start of Case III (center opening)</li>
+    <li><a href="../../assets/img/tictactoe_scan_7.jpg">page 4</a> &mdash; the subcases of Case III.I and Case III.II</li>
+    <li><a href="../../assets/img/tictactoe_scan_8.jpg">page 5</a> &mdash; Cases III.III&ndash;III.IV, the conclusion, and Theorem 2</li>
+    <li><a href="../../assets/img/tictactoe_scan_9.jpg">page 6</a> &mdash; the two supporting lemmas</li>
+  </ul>
+
+  <p>Scans of the original notebook pages (earlier partial lemmas, now superseded by the full base case, and the induction step):</p>
+  <ul class="downloads">
+    <li><a href="../../assets/img/tictactoe_scan_1.jpg">page 1</a> &mdash; early lemmas on win conditions</li>
+    <li><a href="../../assets/img/tictactoe_scan_2.jpg">page 2</a> &mdash; the win-condition definition and the induction step</li>
     <li><a href="../../assets/img/tictactoe_scan_3.jpg">page 3</a> &mdash; conclusion of the induction step</li>
   </ul>
 
